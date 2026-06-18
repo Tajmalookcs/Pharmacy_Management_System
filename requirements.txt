@@ -1,0 +1,8 @@
+Django==4.2.13
+Pillow==10.4.0
+asgiref==3.7.2
+sqlparse==0.4.4
+typing_extensions==4.6.3
+WeasyPrint==60.2
+openpyxl==3.1.2
+python-barcode==0.15.1

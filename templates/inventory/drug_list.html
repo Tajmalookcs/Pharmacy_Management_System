@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Drugs — PharmaPOS{% endblock %}
+{% block nav_drugs %}active{% endblock %}
+{% block page_title %}Drugs / Stock{% endblock %}
+{% block page_sub %}Manage your pharmacy inventory{% endblock %}
+
+{% block content %}
+<!-- Toolbar -->
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;" class="anim-down">
+    <form method="get" style="display:flex;gap:10px;flex:1;min-width:260px;">
+        <div style="position:relative;flex:1;">
+            <i class="bi bi-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);"></i>
+            <input name="q" value="{{ q }}" placeholder="Search by name or barcode…" class="form-glass" style="padding-left:36px;">
+        </div>
+        <select name="category" class="form-glass" style="width:160px;">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+            <option value="{{ cat.pk }}" {% if selected_cat == cat.pk|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="alert" class="form-glass" style="width:140px;">
+            <option value="">All Status</option>
+            <option value="low"     {% if selected_alert == "low" %}selected{% endif %}>Low Stock</option>
+            <option value="expiry"  {% if selected_alert == "expiry" %}selected{% endif %}>Near Expiry</option>
+            <option value="expired" {% if selected_alert == "expired" %}selected{% endif %}>Expired</option>
+        </select>
+        <button type="submit" class="btn-primary-glass">Filter</button>
+    </form>
+    <a href="{% url 'inventory:drug_add' %}" class="btn-primary-glass" style="white-space:nowrap;text-decoration:none;">
+        <i class="bi bi-plus-lg me-1"></i> Add Drug
+    </a>
+</div>
+
+<!-- Table -->
+<div class="glass-card anim-up">
+    <table class="custom-table">
+        <thead><tr>
+            <th>Drug</th><th>Generic</th><th>Category</th>
+            <th>Sale Price</th><th>Stock</th><th>Expiry</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody>
+        {% for drug in drugs %}
+        <tr>
+            <td>
+                <div style="font-weight:600;color:#fff;">{{ drug.brand_name }}</div>
+                {% if drug.barcode %}<div style="font-size:11px;color:var(--muted);">{{ drug.barcode }}</div>{% endif %}
+            </td>
+            <td>{{ drug.generic_name|default:"—" }}</td>
+            <td>{{ drug.category.name|default:"—" }}</td>
+            <td style="color:var(--accent1);">Rs {{ drug.sale_price }}</td>
+            <td>
+                <span style="font-weight:600;color:{% if drug.quantity <= drug.reorder_level %}var(--red){% else %}#fff{% endif %}">
+                    {{ drug.quantity }}
+                </span>
+            </td>
+            <td style="color:{% if drug.expiry_date and drug.expiry_date < today %}var(--red){% else %}var(--text){% endif %}">
+                {{ drug.expiry_date|date:"d M Y"|default:"—" }}
+            </td>
+            <td>
+                {% if drug.is_expired %}
+                    <span class="badge-return">Expired</span>
+                {% elif drug.is_low_stock %}
+                    <span class="badge-pending">Low Stock</span>
+                {% else %}
+                    <span class="badge-paid">In Stock</span>
+                {% endif %}
+            </td>
+            <td>
+                <div style="display:flex;gap:6px;">
+                    <a href="{% url 'inventory:drug_edit' drug.pk %}" class="btn-ghost" style="padding:5px 10px;font-size:12px;">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'inventory:drug_delete' drug.pk %}" class="btn-danger-glass" style="padding:5px 10px;font-size:12px;">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">
+            <i class="bi bi-box-seam" style="font-size:32px;display:block;margin-bottom:10px;"></i>
+            No drugs found. <a href="{% url 'inventory:drug_add' %}" style="color:var(--accent1);">Add one</a>
+        </td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+{% block extra_js %}<script>
+const today = new Date().toISOString().split('T')[0];
+</script>{% endblock %}

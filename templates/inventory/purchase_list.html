@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Purchases — PharmaPOS{% endblock %}
+{% block nav_purchases %}active{% endblock %}
+{% block page_title %}Purchase Orders{% endblock %}
+{% block page_sub %}Stock received from suppliers{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:flex-end;margin-bottom:18px;" class="anim-down">
+    <a href="{% url 'inventory:purchase_add' %}" class="btn-primary-glass" style="text-decoration:none;">
+        <i class="bi bi-plus-lg me-1"></i> New Purchase
+    </a>
+</div>
+<div class="glass-card anim-up">
+    <table class="custom-table">
+        <thead><tr><th>PO #</th><th>Supplier</th><th>Invoice</th><th>Date</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+        {% for po in purchases %}
+        <tr>
+            <td style="color:var(--accent1);">PO-{{ po.id|stringformat:"04d" }}</td>
+            <td style="font-weight:600;color:#fff;">{{ po.supplier.name }}</td>
+            <td style="color:var(--muted);">{{ po.invoice_no|default:"—" }}</td>
+            <td>{{ po.purchase_date|date:"d M Y" }}</td>
+            <td style="color:var(--green);">Rs {{ po.total_amount }}</td>
+            <td>
+                {% if po.status == 'received' %}<span class="badge-paid">Received</span>
+                {% elif po.status == 'pending' %}<span class="badge-pending">Pending</span>
+                {% else %}<span class="badge-return">Cancelled</span>{% endif %}
+            </td>
+            <td>
+                <a href="{% url 'inventory:purchase_detail' po.pk %}" class="btn-ghost" style="padding:5px 12px;font-size:12px;">
+                    <i class="bi bi-eye"></i> View
+                </a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--muted);">No purchases yet. <a href="{% url 'inventory:purchase_add' %}" style="color:var(--accent1);">Create one</a></td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

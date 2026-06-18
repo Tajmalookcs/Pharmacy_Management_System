@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Return Detail — PharmaPOS{% endblock %}
+{% block nav_returns %}active{% endblock %}
+{% block page_title %}RTN-{{ ret.id|stringformat:"04d" }}{% endblock %}
+{% block page_sub %}Return for {{ ret.sale.invoice_no }}{% endblock %}
+
+{% block content %}
+<div style="max-width:760px;" class="anim-up">
+    <div class="glass-card" style="margin-bottom:16px;">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
+            <div><div class="card-sub">Original Sale</div><a href="{% url 'sales:sale_detail' ret.sale.pk %}" style="color:var(--accent1);font-weight:600;margin-top:4px;display:block;text-decoration:none;">{{ ret.sale.invoice_no }}</a></div>
+            <div><div class="card-sub">Return Type</div><div style="margin-top:4px;">{% if ret.return_type == 'cash' %}<span class="badge-pending">Cash Refund</span>{% else %}<span class="badge-info">Exchange</span>{% endif %}</div></div>
+            <div><div class="card-sub">Refund Amount</div><div style="color:var(--green);font-weight:700;font-size:18px;margin-top:4px;">{% if ret.refund_amount %}Rs {{ ret.refund_amount }}{% else %}—{% endif %}</div></div>
+            <div><div class="card-sub">Processed By</div><div style="color:#fff;margin-top:4px;">{{ ret.processed_by.username|default:"—" }}</div></div>
+            <div><div class="card-sub">Date</div><div style="color:#fff;margin-top:4px;">{{ ret.return_date|date:"d M Y H:i" }}</div></div>
+            {% if ret.reason %}<div style="grid-column:1/-1;"><div class="card-sub">Reason</div><div style="color:var(--muted);margin-top:4px;">{{ ret.reason }}</div></div>{% endif %}
+        </div>
+    </div>
+    <div class="glass-card" style="margin-bottom:16px;">
+        <div class="card-title" style="margin-bottom:14px;">Returned Items</div>
+        <table class="custom-table">
+            <thead><tr><th>Drug</th><th>Qty</th><th>Unit Price</th><th>Subtotal</th><th>Exchange With</th></tr></thead>
+            <tbody>
+            {% for item in ret.items.all %}
+            <tr>
+                <td style="font-weight:600;color:#fff;">{{ item.drug.brand_name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>Rs {{ item.unit_price }}</td>
+                <td style="color:var(--accent1);">Rs {{ item.subtotal }}</td>
+                <td>{{ item.exchange_drug.brand_name|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <a href="{% url 'sales:return_list' %}" class="btn-ghost"><i class="bi bi-arrow-left me-1"></i> Back</a>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Sales — PharmaPOS{% endblock %}
+{% block nav_sales %}active{% endblock %}
+{% block page_title %}Sales{% endblock %}
+{% block page_sub %}All transactions{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;" class="anim-down">
+    <form method="get" style="display:flex;gap:10px;flex:1;">
+        <div style="position:relative;flex:1;">
+            <i class="bi bi-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);"></i>
+            <input name="q" value="{{ q }}" class="form-glass" style="padding-left:36px;" placeholder="Invoice no or customer…">
+        </div>
+        <input name="date" type="date" value="{{ date }}" class="form-glass" style="width:170px;">
+        <button type="submit" class="btn-primary-glass">Filter</button>
+        {% if q or date %}<a href="{% url 'sales:sale_list' %}" class="btn-ghost">Clear</a>{% endif %}
+    </form>
+</div>
+
+<div class="glass-card anim-up">
+    <table class="custom-table">
+        <thead><tr>
+            <th>Invoice</th><th>Date</th><th>Customer</th><th>Counter</th>
+            <th>Cashier</th><th>Total</th><th>Payment</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody>
+        {% for sale in sales %}
+        <tr>
+            <td style="color:var(--accent1);font-weight:600;">{{ sale.invoice_no }}</td>
+            <td style="color:var(--muted);">{{ sale.sale_date|date:"d M Y H:i" }}</td>
+            <td>{{ sale.customer.name|default:"Walk-in" }}</td>
+            <td>{{ sale.counter.name|default:"—" }}</td>
+            <td>{{ sale.cashier.username|default:"—" }}</td>
+            <td style="color:var(--green);font-weight:600;">Rs {{ sale.total_amount }}</td>
+            <td><span class="badge-info">{{ sale.get_payment_method_display }}</span></td>
+            <td>
+                {% if sale.status == 'completed' %}<span class="badge-paid">Completed</span>
+                {% elif sale.status == 'pending' %}<span class="badge-pending">Pending</span>
+                {% else %}<span class="badge-return">Cancelled</span>{% endif %}
+            </td>
+            <td>
+                <div style="display:flex;gap:6px;">
+                    <a href="{% url 'sales:sale_detail' sale.pk %}" class="btn-ghost" style="padding:5px 10px;font-size:12px;"><i class="bi bi-eye"></i></a>
+                    <a href="{% url 'sales:sale_receipt' sale.pk %}" class="btn-ghost" style="padding:5px 10px;font-size:12px;" target="_blank"><i class="bi bi-printer"></i></a>
+                    {% if sale.can_return %}
+                    <a href="{% url 'sales:return_new' sale.pk %}" class="btn-danger-glass" style="padding:5px 10px;font-size:12px;"><i class="bi bi-arrow-return-left"></i></a>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" style="text-align:center;padding:36px;color:var(--muted);">
+            <i class="bi bi-receipt" style="font-size:32px;display:block;margin-bottom:10px;"></i>No sales found.
+        </td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

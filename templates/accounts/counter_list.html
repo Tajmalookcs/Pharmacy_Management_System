@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Counters — PharmaPOS{% endblock %}
+{% block nav_users %}active{% endblock %}
+{% block page_title %}Counters{% endblock %}
+{% block page_sub %}Manage POS counters{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:flex-end;margin-bottom:18px;" class="anim-down">
+    <a href="{% url 'accounts:counter_add' %}" class="btn-primary-glass" style="text-decoration:none;">
+        <i class="bi bi-plus-lg me-1"></i> Add Counter
+    </a>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;" class="anim-up">
+{% for c in counters %}
+<div class="glass-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:46px;height:46px;border-radius:13px;background:rgba(0,198,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--accent1);">
+                <i class="bi bi-display"></i>
+            </div>
+            <div>
+                <div style="font-weight:700;color:#fff;font-size:15px;">{{ c.name }}</div>
+                <div style="color:var(--muted);font-size:12px;">{{ c.cashier.username|default:"Unassigned" }}</div>
+            </div>
+        </div>
+        {% if c.is_active %}<span class="badge-paid">Active</span>{% else %}<span class="badge-return">Inactive</span>{% endif %}
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+        <a href="{% url 'sales:pos' c.pk %}" class="btn-primary-glass" style="text-decoration:none;flex:1;text-align:center;font-size:12px;padding:8px;">
+            <i class="bi bi-display me-1"></i> Open POS
+        </a>
+        <a href="{% url 'accounts:counter_edit' c.pk %}" class="btn-ghost" style="padding:8px 14px;font-size:12px;">
+            <i class="bi bi-pencil"></i>
+        </a>
+    </div>
+</div>
+{% empty %}
+<div style="text-align:center;padding:40px;color:var(--muted);">No counters yet. <a href="{% url 'accounts:counter_add' %}" style="color:var(--accent1);">Add one</a></div>
+{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Profit & Loss — PharmaPOS{% endblock %}
+{% block nav_reports %}active{% endblock %}
+{% block page_title %}Profit & Loss{% endblock %}
+
+{% block content %}
+<div class="glass-card anim-down" style="margin-bottom:16px;">
+    <form method="get" style="display:flex;gap:12px;align-items:flex-end;">
+        <div><label class="form-label">From</label><input name="from" type="date" value="{{ date_from }}" class="form-glass"></div>
+        <div><label class="form-label">To</label><input name="to" type="date" value="{{ date_to }}" class="form-glass"></div>
+        <button type="submit" class="btn-primary-glass">Calculate</button>
+    </form>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;" class="anim-up">
+    <div class="glass-card" style="text-align:center;">
+        <div style="color:var(--muted);font-size:12px;margin-bottom:8px;">Total Revenue</div>
+        <div style="color:var(--accent1);font-weight:700;font-size:22px;">Rs {{ total_rev }}</div>
+    </div>
+    <div class="glass-card" style="text-align:center;">
+        <div style="color:var(--muted);font-size:12px;margin-bottom:8px;">Total Returns</div>
+        <div style="color:var(--red);font-weight:700;font-size:22px;">- Rs {{ total_ret }}</div>
+    </div>
+    <div class="glass-card" style="text-align:center;">
+        <div style="color:var(--muted);font-size:12px;margin-bottom:8px;">Cost of Goods</div>
+        <div style="color:var(--yellow);font-weight:700;font-size:22px;">- Rs {{ total_cost }}</div>
+    </div>
+    <div class="glass-card" style="text-align:center;border-color:{% if net_profit >= 0 %}rgba(16,185,129,0.3){% else %}rgba(239,68,68,0.3){% endif %};">
+        <div style="color:var(--muted);font-size:12px;margin-bottom:8px;">Net Profit</div>
+        <div style="color:{% if net_profit >= 0 %}var(--green){% else %}var(--red){% endif %};font-weight:700;font-size:22px;">Rs {{ net_profit }}</div>
+    </div>
+</div>
+{% endblock %}

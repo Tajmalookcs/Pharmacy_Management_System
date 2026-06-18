@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Expiry Report — PharmaPOS{% endblock %}
+{% block nav_reports %}active{% endblock %}
+{% block page_title %}Expiry Report{% endblock %}
+
+{% block content %}
+{% if expired %}
+<div class="glass-card anim-up" style="margin-bottom:16px;">
+    <div class="card-title" style="color:var(--red);margin-bottom:14px;"><i class="bi bi-x-circle me-2"></i>Expired Drugs ({{ expired.count }})</div>
+    <table class="custom-table">
+        <thead><tr><th>Drug</th><th>Category</th><th>Stock</th><th>Expiry Date</th></tr></thead>
+        <tbody>
+        {% for d in expired %}
+        <tr>
+            <td style="font-weight:600;color:#fff;">{{ d.brand_name }}</td>
+            <td>{{ d.category.name|default:"—" }}</td>
+            <td style="color:var(--muted);">{{ d.quantity }}</td>
+            <td style="color:var(--red);">{{ d.expiry_date|date:"d M Y" }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div class="glass-card anim-up" style="animation-delay:.1s;">
+    <div class="card-title" style="color:var(--yellow);margin-bottom:14px;"><i class="bi bi-exclamation-triangle me-2"></i>Expiring Within 30 Days ({{ near30.count }})</div>
+    <table class="custom-table">
+        <thead><tr><th>Drug</th><th>Category</th><th>Stock</th><th>Expiry Date</th><th>Days Left</th></tr></thead>
+        <tbody>
+        {% for d in near30 %}
+        <tr>
+            <td style="font-weight:600;color:#fff;">{{ d.brand_name }}</td>
+            <td>{{ d.category.name|default:"—" }}</td>
+            <td>{{ d.quantity }}</td>
+            <td style="color:var(--yellow);">{{ d.expiry_date|date:"d M Y" }}</td>
+            <td><span class="badge-pending">{{ d.expiry_date|timeuntil }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);">No drugs expiring in 30 days.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

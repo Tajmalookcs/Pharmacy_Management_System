@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Returns — PharmaPOS{% endblock %}
+{% block nav_returns %}active{% endblock %}
+{% block page_title %}Returns{% endblock %}
+{% block page_sub %}Processed return transactions{% endblock %}
+
+{% block content %}
+<div class="glass-card anim-up">
+    <table class="custom-table">
+        <thead><tr>
+            <th>#</th><th>Original Invoice</th><th>Type</th><th>Refund</th><th>By</th><th>Date</th><th>Actions</th>
+        </tr></thead>
+        <tbody>
+        {% for ret in returns %}
+        <tr>
+            <td style="color:var(--muted);">RTN-{{ ret.id|stringformat:"04d" }}</td>
+            <td><a href="{% url 'sales:sale_detail' ret.sale.pk %}" style="color:var(--accent1);text-decoration:none;">{{ ret.sale.invoice_no }}</a></td>
+            <td>
+                {% if ret.return_type == 'cash' %}<span class="badge-pending">Cash Refund</span>
+                {% else %}<span class="badge-info">Exchange</span>{% endif %}
+            </td>
+            <td style="color:var(--green);">{% if ret.refund_amount %}Rs {{ ret.refund_amount }}{% else %}—{% endif %}</td>
+            <td>{{ ret.processed_by.username|default:"—" }}</td>
+            <td style="color:var(--muted);">{{ ret.return_date|date:"d M Y H:i" }}</td>
+            <td>
+                <a href="{% url 'sales:return_detail' ret.pk %}" class="btn-ghost" style="padding:5px 10px;font-size:12px;"><i class="bi bi-eye"></i></a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" style="text-align:center;padding:36px;color:var(--muted);">
+            <i class="bi bi-arrow-return-left" style="font-size:32px;display:block;margin-bottom:10px;"></i>No returns yet.
+        </td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

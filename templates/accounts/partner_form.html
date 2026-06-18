@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Partner — PharmaPOS{% endblock %}
+{% block nav_partners %}active{% endblock %}
+{% block page_title %}{{ action }} Partner{% endblock %}
+
+{% block content %}
+<div style="max-width:480px;" class="anim-up">
+    <div class="glass-card">
+        <form method="post">
+            {% csrf_token %}
+            {% if action == 'Add' %}
+            <label class="form-label">Select User *</label>
+            <select name="user" required class="form-glass" style="margin-bottom:16px;">
+                <option value="">— Select User —</option>
+                {% for u in users %}
+                <option value="{{ u.pk }}">{{ u.username }} — {{ u.get_full_name|default:u.username }}</option>
+                {% endfor %}
+            </select>
+            {% else %}
+            <div style="margin-bottom:16px;padding:12px;background:rgba(255,255,255,0.05);border-radius:10px;">
+                <div style="color:var(--muted);font-size:11px;">Partner</div>
+                <div style="color:#fff;font-weight:600;margin-top:4px;">{{ obj.user.get_full_name|default:obj.user.username }}</div>
+            </div>
+            {% endif %}
+            <label class="form-label">Ownership % *</label>
+            <input name="ownership_percent" type="number" step="0.01" min="0" max="100" required
+                value="{{ obj.ownership_percent|default:'0' }}" class="form-glass" placeholder="e.g. 33.33" style="margin-bottom:16px;">
+            <label class="form-label">Notes</label>
+            <textarea name="notes" class="form-glass" rows="3" style="margin-bottom:20px;" placeholder="Optional…">{{ obj.notes|default:'' }}</textarea>
+            <div style="display:flex;gap:12px;">
+                <button type="submit" class="btn-primary-glass"><i class="bi bi-check-lg me-1"></i> {{ action }} Partner</button>
+                <a href="{% url 'accounts:partner_list' %}" class="btn-ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

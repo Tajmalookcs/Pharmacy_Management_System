@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Partners — PharmaPOS{% endblock %}
+{% block nav_partners %}active{% endblock %}
+{% block page_title %}Partners{% endblock %}
+{% block page_sub %}Ownership shares{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:flex-end;margin-bottom:18px;" class="anim-down">
+    <a href="{% url 'accounts:partner_add' %}" class="btn-primary-glass" style="text-decoration:none;">
+        <i class="bi bi-plus-lg me-1"></i> Add Partner
+    </a>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;" class="anim-up">
+{% for p in partners %}
+<div class="glass-card" style="text-align:center;">
+    <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--accent2),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;margin:0 auto 14px;">
+        {{ p.user.username|first|upper }}
+    </div>
+    <div style="font-weight:700;color:#fff;font-size:15px;">{{ p.user.get_full_name|default:p.user.username }}</div>
+    <div style="color:var(--muted);font-size:12px;margin:4px 0 14px;">{{ p.user.email|default:"No email" }}</div>
+    <div style="background:rgba(99,102,241,0.12);border-radius:12px;padding:12px;margin-bottom:14px;">
+        <div style="color:var(--accent1);font-weight:700;font-size:26px;">{{ p.ownership_percent }}%</div>
+        <div style="color:var(--muted);font-size:11px;">Ownership Share</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a href="{% url 'accounts:partner_edit' p.pk %}" class="btn-ghost" style="flex:1;text-align:center;font-size:12px;padding:8px;"><i class="bi bi-pencil me-1"></i> Edit</a>
+        <a href="{% url 'reports:partners' %}" class="btn-primary-glass" style="flex:1;text-align:center;font-size:12px;padding:8px;text-decoration:none;"><i class="bi bi-graph-up me-1"></i> Report</a>
+    </div>
+</div>
+{% empty %}
+<div style="text-align:center;padding:40px;color:var(--muted);">No partners yet. <a href="{% url 'accounts:partner_add' %}" style="color:var(--accent1);">Add one</a></div>
+{% endfor %}
+</div>
+{% endblock %}

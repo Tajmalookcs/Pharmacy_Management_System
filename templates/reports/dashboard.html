@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Reports — PharmaPOS{% endblock %}
+{% block nav_reports %}active{% endblock %}
+{% block page_title %}Reports & Analytics{% endblock %}
+{% block page_sub %}Business performance overview{% endblock %}
+
+{% block content %}
+<!-- Stat cards -->
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px;" class="anim-up">
+    {% for label,val,color,icon in stats %}
+    <div class="glass-card" style="text-align:center;">
+        <div style="font-size:22px;color:{{ color }};margin-bottom:8px;"><i class="bi bi-{{ icon }}"></i></div>
+        <div style="font-size:18px;font-weight:700;color:#fff;">{{ val }}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">{{ label }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Quick links -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;" class="anim-up" style="animation-delay:.1s;">
+    <a href="{% url 'reports:sales' %}" style="text-decoration:none;">
+        <div class="glass-card" style="display:flex;align-items:center;gap:14px;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+            <div style="width:46px;height:46px;border-radius:13px;background:rgba(0,198,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--accent1);flex-shrink:0;"><i class="bi bi-receipt"></i></div>
+            <div><div style="color:#fff;font-weight:600;">Sales Report</div><div style="color:var(--muted);font-size:12px;">Filter by date & counter</div></div>
+            <i class="bi bi-arrow-right" style="margin-left:auto;color:var(--muted);"></i>
+        </div>
+    </a>
+    <a href="{% url 'reports:stock' %}" style="text-decoration:none;">
+        <div class="glass-card" style="display:flex;align-items:center;gap:14px;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+            <div style="width:46px;height:46px;border-radius:13px;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--green);flex-shrink:0;"><i class="bi bi-box-seam"></i></div>
+            <div><div style="color:#fff;font-weight:600;">Stock Report</div><div style="color:var(--muted);font-size:12px;">Full inventory valuation</div></div>
+            <i class="bi bi-arrow-right" style="margin-left:auto;color:var(--muted);"></i>
+        </div>
+    </a>
+    <a href="{% url 'reports:expiry' %}" style="text-decoration:none;">
+        <div class="glass-card" style="display:flex;align-items:center;gap:14px;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+            <div style="width:46px;height:46px;border-radius:13px;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--red);flex-shrink:0;"><i class="bi bi-calendar-x"></i></div>
+            <div><div style="color:#fff;font-weight:600;">Expiry Report</div><div style="color:var(--muted);font-size:12px;">Expired & near-expiry</div></div>
+            <i class="bi bi-arrow-right" style="margin-left:auto;color:var(--muted);"></i>
+        </div>
+    </a>
+    <a href="{% url 'reports:profit' %}" style="text-decoration:none;">
+        <div class="glass-card" style="display:flex;align-items:center;gap:14px;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+            <div style="width:46px;height:46px;border-radius:13px;background:rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--yellow);flex-shrink:0;"><i class="bi bi-graph-up-arrow"></i></div>
+            <div><div style="color:#fff;font-weight:600;">Profit & Loss</div><div style="color:var(--muted);font-size:12px;">Revenue vs cost</div></div>
+            <i class="bi bi-arrow-right" style="margin-left:auto;color:var(--muted);"></i>
+        </div>
+    </a>
+    <a href="{% url 'reports:partners' %}" style="text-decoration:none;">
+        <div class="glass-card" style="display:flex;align-items:center;gap:14px;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+            <div style="width:46px;height:46px;border-radius:13px;background:rgba(168,85,247,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--accent3);flex-shrink:0;"><i class="bi bi-person-badge"></i></div>
+            <div><div style="color:#fff;font-weight:600;">Partner Shares</div><div style="color:var(--muted);font-size:12px;">Profit distribution</div></div>
+            <i class="bi bi-arrow-right" style="margin-left:auto;color:var(--muted);"></i>
+        </div>
+    </a>
+    <a href="{% url 'reports:counters' %}" style="text-decoration:none;">
+        <div class="glass-card" style="display:flex;align-items:center;gap:14px;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+            <div style="width:46px;height:46px;border-radius:13px;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--accent2);flex-shrink:0;"><i class="bi bi-display"></i></div>
+            <div><div style="color:#fff;font-weight:600;">Counter Report</div><div style="color:var(--muted);font-size:12px;">Per counter performance</div></div>
+            <i class="bi bi-arrow-right" style="margin-left:auto;color:var(--muted);"></i>
+        </div>
+    </a>
+</div>
+
+<!-- Revenue chart -->
+<div class="glass-card anim-up" style="animation-delay:.2s;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <div><div class="card-title">Revenue vs Profit</div><div class="card-sub">Last 30 days</div></div>
+    </div>
+    <canvas id="revenueChart" height="80"></canvas>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+Chart.defaults.color='rgba(255,255,255,0.4)';
+Chart.defaults.borderColor='rgba(255,255,255,0.06)';
+const ctx = document.getElementById('revenueChart').getContext('2d');
+const g1 = ctx.createLinearGradient(0,0,0,200); g1.addColorStop(0,'rgba(0,198,255,0.3)'); g1.addColorStop(1,'rgba(0,198,255,0)');
+const g2 = ctx.createLinearGradient(0,0,0,200); g2.addColorStop(0,'rgba(16,185,129,0.3)'); g2.addColorStop(1,'rgba(16,185,129,0)');
+new Chart(ctx, {
+    type:'line',
+    data:{
+        labels: {{ chart_labels|safe }},
+        datasets:[
+            {label:'Revenue',data:{{ chart_revenue|safe }},borderColor:'#00c6ff',backgroundColor:g1,borderWidth:2,tension:0.4,fill:true,pointRadius:0},
+            {label:'Profit', data:{{ chart_profit|safe }}, borderColor:'#10b981',backgroundColor:g2,borderWidth:2,tension:0.4,fill:true,pointRadius:0},
+        ]
+    },
+    options:{responsive:true,plugins:{legend:{labels:{boxWidth:10,padding:16}},tooltip:{backgroundColor:'rgba(13,18,37,0.95)',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,callbacks:{label:c=>' Rs '+c.parsed.y.toLocaleString()}}},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:8}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{callback:v=>'Rs '+(v>=1000?(v/1000)+'k':v)}}}}
+});
+</script>
+{% endblock %}

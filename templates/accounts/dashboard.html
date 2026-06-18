@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — PharmaPOS{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+{% block page_title %}{% now "H" as hour %}{% if hour < "12" %}Good Morning{% elif hour < "17" %}Good Afternoon{% else %}Good Evening{% endif %}, {{ request.user.first_name|default:request.user.username }} 👋{% endblock %}
+{% block page_sub %}{% now "l, d F Y" %} &nbsp;·&nbsp; Here's what's happening today{% endblock %}
+
+{% block content %}
+
+<!-- Alert strip -->
+{% if low_stock_count or expiry_count %}
+<div class="alert-strip anim-down">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <span>
+        {% if low_stock_count %}<strong>{{ low_stock_count }} drug{{ low_stock_count|pluralize }}</strong> running low on stock{% endif %}
+        {% if low_stock_count and expiry_count %} &nbsp;·&nbsp; {% endif %}
+        {% if expiry_count %}<strong>{{ expiry_count }} drug{{ expiry_count|pluralize }}</strong> expiring within 30 days{% endif %}
+    </span>
+    <a href="{% url 'inventory:drug_list' %}" style="color:#fcd34d;margin-left:auto;font-size:12px;white-space:nowrap;">View all &rarr;</a>
+</div>
+{% endif %}
+
+<!-- Counter chips -->
+<div style="display:flex;gap:10px;margin-bottom:22px;" class="anim-down">
+    {% for counter in counters %}
+    <a href="#" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;text-decoration:none;transition:all 0.2s;">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--green);animation:blink 2s ease-in-out infinite;"></span>
+        {{ counter.name }} &nbsp;<strong style="color:#fff;">Active</strong>
+    </a>
+    {% endfor %}
+    <a href="#" style="margin-left:auto;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:12px;color:var(--accent1);display:flex;align-items:center;gap:8px;text-decoration:none;">
+        <i class="bi bi-display"></i> Open POS
+    </a>
+</div>
+<style>
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+</style>
+
+<!-- Stat cards -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px;">
+
+    <div class="glass-card anim-up" style="--glow:linear-gradient(135deg,rgba(0,198,255,0.07),transparent);animation-delay:.05s;position:relative;overflow:hidden;">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(0,198,255,0.15);display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--accent1);margin-bottom:13px;">
+            <i class="bi bi-currency-dollar"></i>
+        </div>
+        <div style="font-size:24px;font-weight:700;color:#fff;line-height:1;margin-bottom:5px;" data-target="{{ today_revenue }}">0</div>
+        <div style="color:var(--muted);font-size:12px;">Today's Revenue</div>
+        <div style="position:absolute;top:18px;right:16px;font-size:11px;font-weight:600;color:var(--green);display:flex;align-items:center;gap:3px;">
+            <i class="bi bi-arrow-up-right"></i> Today
+        </div>
+    </div>
+
+    <div class="glass-card anim-up" style="animation-delay:.1s;position:relative;overflow:hidden;">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--accent2);margin-bottom:13px;">
+            <i class="bi bi-receipt-cutoff"></i>
+        </div>
+        <div style="font-size:24px;font-weight:700;color:#fff;line-height:1;margin-bottom:5px;" data-count="{{ today_sales }}">0</div>
+        <div style="color:var(--muted);font-size:12px;">Sales Today</div>
+        <div style="position:absolute;top:18px;right:16px;font-size:11px;font-weight:600;color:var(--green);display:flex;align-items:center;gap:3px;">
+            <i class="bi bi-arrow-up-right"></i> Today
+        </div>
+    </div>
+
+    <div class="glass-card anim-up" style="animation-delay:.15s;position:relative;overflow:hidden;">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--green);margin-bottom:13px;">
+            <i class="bi bi-box-seam"></i>
+        </div>
+        <div style="font-size:24px;font-weight:700;color:#fff;line-height:1;margin-bottom:5px;" data-count="{{ total_drugs }}">0</div>
+        <div style="color:var(--muted);font-size:12px;">Drugs In Stock</div>
+        <div style="position:absolute;top:18px;right:16px;font-size:11px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:3px;">
+            Total
+        </div>
+    </div>
+
+    <div class="glass-card anim-up" style="animation-delay:.2s;position:relative;overflow:hidden;">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--yellow);margin-bottom:13px;">
+            <i class="bi bi-arrow-return-left"></i>
+        </div>
+        <div style="font-size:24px;font-weight:700;color:#fff;line-height:1;margin-bottom:5px;" data-count="{{ today_returns }}">0</div>
+        <div style="color:var(--muted);font-size:12px;">Returns Today</div>
+        <div style="position:absolute;top:18px;right:16px;font-size:11px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:3px;">
+            Today
+        </div>
+    </div>
+
+</div>
+
+<!-- Charts row -->
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:22px;">
+
+    <div class="glass-card anim-up" style="animation-delay:.22s;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+            <div>
+                <div class="card-title">Sales Overview</div>
+                <div class="card-sub">Revenue — last 7 days</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+                <span class="pill active" onclick="switchPeriod(this,'week')" style="padding:4px 12px;border-radius:20px;font-size:11px;cursor:pointer;border:1px solid var(--border);color:var(--accent1);background:rgba(99,102,241,0.2);border-color:var(--accent2);">Week</span>
+                <span class="pill" onclick="switchPeriod(this,'month')" style="padding:4px 12px;border-radius:20px;font-size:11px;cursor:pointer;border:1px solid var(--border);color:var(--muted);">Month</span>
+            </div>
+        </div>
+        <canvas id="salesChart" height="105"></canvas>
+    </div>
+
+    <div class="glass-card anim-up" style="animation-delay:.27s;">
+        <div style="margin-bottom:18px;">
+            <div class="card-title">By Category</div>
+            <div class="card-sub">This month</div>
+        </div>
+        <canvas id="catChart" height="160"></canvas>
+        <div id="catLegend" style="margin-top:14px;display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+
+</div>
+
+<!-- Bottom row -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+    <!-- Recent sales -->
+    <div class="glass-card anim-up" style="animation-delay:.3s;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div class="card-title">Recent Sales</div>
+            <a href="{% url 'sales:sale_list' %}" style="font-size:12px;color:var(--accent1);text-decoration:none;">View all</a>
+        </div>
+        <table class="custom-table">
+            <thead><tr>
+                <th>Invoice</th><th>Customer</th><th>Counter</th><th>Amount</th><th>Status</th>
+            </tr></thead>
+            <tbody>
+            {% for sale in recent_sales %}
+            <tr>
+                <td style="color:var(--accent1);">{{ sale.invoice_no }}</td>
+                <td>{{ sale.customer.name|default:"Walk-in" }}</td>
+                <td>{{ sale.counter.name|default:"—" }}</td>
+                <td>Rs {{ sale.total_amount }}</td>
+                <td><span class="badge-{{ sale.status }}">{{ sale.get_status_display }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">No sales yet today</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Alerts -->
+    <div class="glass-card anim-up" style="animation-delay:.35s;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div class="card-title">Stock Alerts</div>
+            <a href="{% url 'inventory:drug_list' %}" style="font-size:12px;color:var(--accent1);text-decoration:none;">View all</a>
+        </div>
+        <table class="custom-table">
+            <thead><tr>
+                <th>Drug</th><th>Stock</th><th>Expiry</th><th>Alert</th>
+            </tr></thead>
+            <tbody>
+            {% for drug in alert_drugs %}
+            <tr>
+                <td>
+                    <span style="width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:7px;background:{% if drug.is_expired %}var(--red){% else %}var(--yellow){% endif %};"></span>
+                    {{ drug.brand_name }}
+                </td>
+                <td>{{ drug.quantity }}</td>
+                <td>{{ drug.expiry_date|date:"M Y"|default:"—" }}</td>
+                <td>
+                    {% if drug.is_expired %}
+                        <span class="badge-return">Expired</span>
+                    {% elif drug.is_near_expiry %}
+                        <span class="badge-return">Near Expiry</span>
+                    {% elif drug.is_low_stock %}
+                        <span class="badge-pending">Low Stock</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">No alerts — all good!</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+Chart.defaults.color = 'rgba(255,255,255,0.4)';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = "'Segoe UI', sans-serif";
+
+/* Count-up animation */
+document.querySelectorAll('[data-target]').forEach(el => {
+    const t = +el.dataset.target;
+    let c = 0; const inc = t / 60;
+    const timer = setInterval(() => {
+        c = Math.min(c + inc, t);
+        el.textContent = 'Rs ' + Math.floor(c).toLocaleString();
+        if (c >= t) clearInterval(timer);
+    }, 16);
+});
+document.querySelectorAll('[data-count]').forEach(el => {
+    const t = +el.dataset.count;
+    let c = 0; const inc = Math.max(1, t / 40);
+    const timer = setInterval(() => {
+        c = Math.min(c + inc, t);
+        el.textContent = Math.floor(c);
+        if (c >= t) clearInterval(timer);
+    }, 20);
+});
+
+/* Sales chart */
+const salesCtx = document.getElementById('salesChart').getContext('2d');
+const grad = salesCtx.createLinearGradient(0, 0, 0, 200);
+grad.addColorStop(0, 'rgba(0,198,255,0.35)');
+grad.addColorStop(1, 'rgba(0,198,255,0)');
+const salesChart = new Chart(salesCtx, {
+    type: 'line',
+    data: {
+        labels: {{ chart_labels|safe }},
+        datasets: [{
+            label: 'Revenue',
+            data: {{ chart_data|safe }},
+            borderColor: '#00c6ff', backgroundColor: grad,
+            borderWidth: 2.5, pointBackgroundColor: '#00c6ff',
+            pointRadius: 4, pointHoverRadius: 7, tension: 0.45, fill: true,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: 'rgba(13,18,37,0.95)',
+                borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 12,
+                callbacks: { label: ctx => ' Rs ' + ctx.parsed.y.toLocaleString() }
+            }
+        },
+        scales: {
+            x: { grid: { display: false } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => 'Rs ' + (v >= 1000 ? (v/1000)+'k' : v) } }
+        }
+    }
+});
+
+/* Category chart */
+const catData = {
+    labels: {{ cat_labels|safe }},
+    values: {{ cat_values|safe }},
+    colors: ['#00c6ff','#6366f1','#10b981','#f59e0b','#a855f7','#ef4444'],
+};
+new Chart(document.getElementById('catChart'), {
+    type: 'doughnut',
+    data: {
+        labels: catData.labels,
+        datasets: [{
+            data: catData.values,
+            backgroundColor: catData.colors.map(c => c + 'cc'),
+            borderColor: catData.colors, borderWidth: 2, hoverOffset: 10,
+        }]
+    },
+    options: {
+        cutout: '70%', responsive: true,
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(13,18,37,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1 } }
+    }
+});
+const legend = document.getElementById('catLegend');
+catData.labels.forEach((lbl, i) => {
+    legend.innerHTML += `<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,0.6)">
+        <span style="width:9px;height:9px;border-radius:3px;background:${catData.colors[i]};flex-shrink:0"></span>
+        <span style="flex:1">${lbl}</span>
+        <span style="color:#fff;font-weight:600">${catData.values[i]}</span></div>`;
+});
+</script>
+{% endblock %}

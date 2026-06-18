@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Delete Drug — PharmaPOS{% endblock %}
+{% block nav_drugs %}active{% endblock %}
+{% block page_title %}Delete Drug{% endblock %}
+
+{% block content %}
+<div style="max-width:480px;" class="anim-up">
+    <div class="glass-card" style="text-align:center;padding:40px;">
+        <div style="width:64px;height:64px;border-radius:18px;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--red);margin:0 auto 20px;">
+            <i class="bi bi-trash"></i>
+        </div>
+        <h5 style="color:#fff;margin-bottom:10px;">Remove "{{ drug.brand_name }}"?</h5>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:28px;">This drug will be marked inactive and removed from the stock list. This action can be reversed from the admin panel.</p>
+        <form method="post" style="display:flex;gap:12px;justify-content:center;">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger-glass"><i class="bi bi-trash me-1"></i> Yes, Remove</button>
+            <a href="{% url 'inventory:drug_list' %}" class="btn-ghost">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

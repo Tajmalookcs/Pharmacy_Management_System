@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Supplier — PharmaPOS{% endblock %}
+{% block nav_suppliers %}active{% endblock %}
+{% block page_title %}{{ action }} Supplier{% endblock %}
+
+{% block content %}
+<div style="max-width:640px;" class="anim-up">
+    <div class="glass-card">
+        <form method="post">
+            {% csrf_token %}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div style="grid-column:1/-1;">
+                    <label class="form-label">Supplier Name *</label>
+                    <input name="name" value="{{ obj.name|default:'' }}" required class="form-glass">
+                </div>
+                <div>
+                    <label class="form-label">Contact Person</label>
+                    <input name="contact_person" value="{{ obj.contact_person|default:'' }}" class="form-glass">
+                </div>
+                <div>
+                    <label class="form-label">Phone</label>
+                    <input name="phone" value="{{ obj.phone|default:'' }}" class="form-glass">
+                </div>
+                <div>
+                    <label class="form-label">Email</label>
+                    <input name="email" type="email" value="{{ obj.email|default:'' }}" class="form-glass">
+                </div>
+                <div>
+                    <label class="form-label">Address</label>
+                    <textarea name="address" class="form-glass" rows="3">{{ obj.address|default:'' }}</textarea>
+                </div>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:22px;">
+                <button type="submit" class="btn-primary-glass"><i class="bi bi-check-lg me-1"></i> {{ action }} Supplier</button>
+                <a href="{% url 'inventory:supplier_list' %}" class="btn-ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

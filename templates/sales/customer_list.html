@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Customers — PharmaPOS{% endblock %}
+{% block nav_customers %}active{% endblock %}
+{% block page_title %}Customers{% endblock %}
+{% block page_sub %}Manage customer records{% endblock %}
+
+{% block content %}
+<div style="display:flex;gap:10px;margin-bottom:18px;" class="anim-down">
+    <form method="get" style="display:flex;gap:10px;flex:1;">
+        <div style="position:relative;flex:1;">
+            <i class="bi bi-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);"></i>
+            <input name="q" value="{{ q }}" class="form-glass" style="padding-left:36px;" placeholder="Name or phone…">
+        </div>
+        <button type="submit" class="btn-primary-glass">Search</button>
+    </form>
+    <a href="{% url 'sales:customer_add' %}" class="btn-primary-glass" style="text-decoration:none;white-space:nowrap;"><i class="bi bi-plus-lg me-1"></i> Add Customer</a>
+</div>
+
+<div class="glass-card anim-up">
+    <table class="custom-table">
+        <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Total Purchases</th><th>Joined</th><th>Actions</th></tr></thead>
+        <tbody>
+        {% for c in customers %}
+        <tr>
+            <td style="font-weight:600;color:#fff;">{{ c.name }}</td>
+            <td>{{ c.phone|default:"—" }}</td>
+            <td>{{ c.email|default:"—" }}</td>
+            <td style="color:var(--accent1);">Rs {{ c.total_purchases }}</td>
+            <td style="color:var(--muted);">{{ c.created_at|date:"d M Y" }}</td>
+            <td>
+                <a href="{% url 'sales:customer_detail' c.pk %}" class="btn-ghost" style="padding:5px 12px;font-size:12px;"><i class="bi bi-eye"></i> View</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align:center;padding:36px;color:var(--muted);">No customers yet. <a href="{% url 'sales:customer_add' %}" style="color:var(--accent1);">Add one</a></td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

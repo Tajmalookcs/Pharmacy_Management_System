@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Customer — PharmaPOS{% endblock %}
+{% block nav_customers %}active{% endblock %}
+{% block page_title %}{{ action }} Customer{% endblock %}
+
+{% block content %}
+<div style="max-width:560px;" class="anim-up">
+    <div class="glass-card">
+        <form method="post">
+            {% csrf_token %}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div style="grid-column:1/-1;"><label class="form-label">Full Name *</label><input name="name" required class="form-glass" value="{{ obj.name|default:'' }}"></div>
+                <div><label class="form-label">Phone</label><input name="phone" class="form-glass" value="{{ obj.phone|default:'' }}"></div>
+                <div><label class="form-label">Email</label><input name="email" type="email" class="form-glass" value="{{ obj.email|default:'' }}"></div>
+                <div style="grid-column:1/-1;"><label class="form-label">Address</label><textarea name="address" class="form-glass" rows="2">{{ obj.address|default:'' }}</textarea></div>
+                <div style="grid-column:1/-1;"><label class="form-label">Notes</label><textarea name="notes" class="form-glass" rows="2">{{ obj.notes|default:'' }}</textarea></div>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:22px;">
+                <button type="submit" class="btn-primary-glass"><i class="bi bi-check-lg me-1"></i> {{ action }} Customer</button>
+                <a href="{% url 'sales:customer_list' %}" class="btn-ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

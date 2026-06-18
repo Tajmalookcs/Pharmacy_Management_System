@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Receipt {{ sale.invoice_no }}</title>
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Courier New',monospace; font-size:13px; width:300px; margin:0 auto; padding:20px 10px; background:#fff; color:#000; }
+    .center { text-align:center; }
+    .bold { font-weight:700; }
+    .line { border-top:1px dashed #000; margin:10px 0; }
+    .row { display:flex; justify-content:space-between; margin:4px 0; }
+    .total-row { display:flex; justify-content:space-between; font-weight:700; font-size:15px; margin:6px 0; }
+
+    .print-btn {
+        margin-top:16px; text-align:center;
+    }
+    .print-btn button {
+        padding:9px 28px; cursor:pointer;
+        border:1px solid #000; background:#000; color:#fff;
+        border-radius:6px; font-size:13px; font-family:inherit;
+    }
+
+    @media print {
+        .no-print { display:none !important; }
+        body { width:80mm; }
+    }
+</style>
+</head>
+<body>
+
+<div class="center bold" style="font-size:16px;">{{ settings.pharmacy_name }}</div>
+{% if settings.tagline %}<div class="center" style="font-size:11px;margin-top:2px;font-style:italic;">{{ settings.tagline }}</div>{% endif %}
+{% if settings.address %}<div class="center" style="font-size:11px;margin-top:3px;">{{ settings.address }}</div>{% endif %}
+{% if settings.phone %}<div class="center" style="font-size:11px;">Tel: {{ settings.phone }}</div>{% endif %}
+
+<div class="line"></div>
+<div class="row"><span>Invoice:</span><span class="bold">{{ sale.invoice_no }}</span></div>
+<div class="row"><span>Date:</span><span>{{ sale.sale_date|date:"d/m/Y H:i" }}</span></div>
+<div class="row"><span>Counter:</span><span>{{ sale.counter.name|default:"—" }}</span></div>
+<div class="row"><span>Cashier:</span><span>{{ sale.cashier.get_full_name|default:sale.cashier.username }}</span></div>
+{% if sale.customer %}<div class="row"><span>Customer:</span><span>{{ sale.customer.name }}</span></div>{% endif %}
+
+<div class="line"></div>
+<div class="row bold"><span>Item</span><span>Qty × Price = Total</span></div>
+<div class="line"></div>
+
+{% for item in sale.items.all %}
+<div style="margin:5px 0;">
+    <div class="bold">{{ item.drug.brand_name }}{% if item.drug.strength %} {{ item.drug.strength }}{% endif %}</div>
+    {% if item.drug.generic_name %}<div style="font-size:11px;color:#555;">{{ item.drug.generic_name }}</div>{% endif %}
+    <div class="row">
+        <span></span>
+        <span>{{ item.quantity }} × Rs{{ item.unit_price }} = Rs{{ item.subtotal }}</span>
+    </div>
+</div>
+{% endfor %}
+
+<div class="line"></div>
+<div class="row"><span>Subtotal</span><span>Rs {{ sale.subtotal }}</span></div>
+{% if sale.discount_amount %}<div class="row"><span>Discount</span><span>- Rs {{ sale.discount_amount }}</span></div>{% endif %}
+{% if sale.tax_amount %}<div class="row"><span>Tax</span><span>Rs {{ sale.tax_amount }}</span></div>{% endif %}
+<div class="line"></div>
+<div class="total-row"><span>TOTAL</span><span>Rs {{ sale.total_amount }}</span></div>
+<div class="row"><span>Paid ({{ sale.get_payment_method_display }})</span><span>Rs {{ sale.amount_paid }}</span></div>
+{% if sale.change_amount %}<div class="row"><span>Change</span><span>Rs {{ sale.change_amount }}</span></div>{% endif %}
+<div class="line"></div>
+
+{% if settings.receipt_footer %}
+<div class="center" style="margin-top:8px;font-size:11px;">{{ settings.receipt_footer }}</div>
+{% endif %}
+
+<div class="no-print print-btn">
+    <button onclick="window.print()">&#128438; Print Receipt</button>
+</div>
+
+<script>
+    /* Auto-trigger print when opened via receipt link from POS */
+    if (window.opener) window.print();
+</script>
+</body>
+</html>

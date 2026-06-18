@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Stock Adjustments — PharmaPOS{% endblock %}
+{% block nav_drugs %}active{% endblock %}
+{% block page_title %}Stock Adjustments{% endblock %}
+{% block page_sub %}Manual stock corrections{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:flex-end;margin-bottom:18px;" class="anim-down">
+    <a href="{% url 'inventory:adjustment_add' %}" class="btn-primary-glass" style="text-decoration:none;">
+        <i class="bi bi-plus-lg me-1"></i> New Adjustment
+    </a>
+</div>
+<div class="glass-card anim-up">
+    <table class="custom-table">
+        <thead><tr><th>Drug</th><th>Change</th><th>Reason</th><th>By</th><th>Notes</th><th>Date</th></tr></thead>
+        <tbody>
+        {% for adj in adjustments %}
+        <tr>
+            <td style="font-weight:600;color:#fff;">{{ adj.drug.brand_name }}</td>
+            <td style="font-weight:700;color:{% if adj.quantity_change > 0 %}var(--green){% else %}var(--red){% endif %};">
+                {{ adj.quantity_change|stringformat:"+d" }}
+            </td>
+            <td>{{ adj.get_reason_display }}</td>
+            <td>{{ adj.adjusted_by.username|default:"—" }}</td>
+            <td style="color:var(--muted);">{{ adj.notes|default:"—"|truncatechars:40 }}</td>
+            <td style="color:var(--muted);">{{ adj.created_at|date:"d M Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted);">No adjustments yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

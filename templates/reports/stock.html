@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Stock Report — PharmaPOS{% endblock %}
+{% block nav_reports %}active{% endblock %}
+{% block page_title %}Stock Report{% endblock %}
+{% block page_sub %}Total inventory value: <span style="color:var(--accent1);">Rs {{ total_value|floatformat:2 }}</span>{% endblock %}
+
+{% block content %}
+<div class="glass-card anim-up">
+    <table class="custom-table">
+        <thead><tr><th>Drug</th><th>Category</th><th>Supplier</th><th>Stock</th><th>Cost Price</th><th>Sale Price</th><th>Value</th><th>Expiry</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for d in drugs %}
+        <tr>
+            <td style="font-weight:600;color:#fff;">{{ d.brand_name }}<br><span style="color:var(--muted);font-size:11px;">{{ d.generic_name }}</span></td>
+            <td>{{ d.category.name|default:"—" }}</td>
+            <td>{{ d.supplier.name|default:"—" }}</td>
+            <td style="font-weight:600;color:{% if d.is_low_stock %}var(--red){% else %}#fff{% endif %};">{{ d.quantity }}</td>
+            <td>Rs {{ d.cost_price }}</td>
+            <td>Rs {{ d.sale_price }}</td>
+            <td style="color:var(--accent1);">Rs {{ d.quantity|add:0 }}</td>
+            <td style="color:{% if d.is_expired %}var(--red){% else %}var(--muted){% endif %};">{{ d.expiry_date|date:"d M Y"|default:"—" }}</td>
+            <td>
+                {% if d.is_expired %}<span class="badge-return">Expired</span>
+                {% elif d.is_low_stock %}<span class="badge-pending">Low</span>
+                {% else %}<span class="badge-paid">OK</span>{% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

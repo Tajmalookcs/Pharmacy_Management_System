@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Sales Report — PharmaPOS{% endblock %}
+{% block nav_reports %}active{% endblock %}
+{% block page_title %}Sales Report{% endblock %}
+
+{% block content %}
+<div class="glass-card anim-down" style="margin-bottom:16px;">
+    <form method="get" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+        <div><label class="form-label">From</label><input name="from" type="date" value="{{ date_from }}" class="form-glass"></div>
+        <div><label class="form-label">To</label><input name="to" type="date" value="{{ date_to }}" class="form-glass"></div>
+        <div><label class="form-label">Counter</label>
+            <select name="counter" class="form-glass" style="width:160px;">
+                <option value="">All Counters</option>
+                {% for c in counters %}<option value="{{ c.pk }}" {% if sel_counter == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn-primary-glass">Filter</button>
+        <a href="{% url 'reports:sales' %}" class="btn-ghost">Reset</a>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+            <span style="color:var(--muted);font-size:13px;">Total:</span>
+            <span style="color:var(--accent1);font-weight:700;font-size:18px;">Rs {{ total }}</span>
+        </div>
+    </form>
+</div>
+<div class="glass-card anim-up">
+    <table class="custom-table">
+        <thead><tr><th>Invoice</th><th>Date</th><th>Customer</th><th>Counter</th><th>Cashier</th><th>Total</th><th>Payment</th></tr></thead>
+        <tbody>
+        {% for s in sales %}
+        <tr>
+            <td style="color:var(--accent1);">{{ s.invoice_no }}</td>
+            <td style="color:var(--muted);">{{ s.sale_date|date:"d M Y H:i" }}</td>
+            <td>{{ s.customer.name|default:"Walk-in" }}</td>
+            <td>{{ s.counter.name|default:"—" }}</td>
+            <td>{{ s.cashier.username|default:"—" }}</td>
+            <td style="color:var(--green);font-weight:600;">Rs {{ s.total_amount }}</td>
+            <td><span class="badge-info">{{ s.get_payment_method_display }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--muted);">No sales found for selected filters.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

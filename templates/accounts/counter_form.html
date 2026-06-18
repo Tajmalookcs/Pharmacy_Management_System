@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Counter — PharmaPOS{% endblock %}
+{% block nav_users %}active{% endblock %}
+{% block page_title %}{{ action }} Counter{% endblock %}
+
+{% block content %}
+<div style="max-width:480px;" class="anim-up">
+    <div class="glass-card">
+        <form method="post">
+            {% csrf_token %}
+            <label class="form-label">Counter Name *</label>
+            <input name="name" required value="{{ obj.name|default:'' }}" class="form-glass" placeholder="e.g. Counter 1" style="margin-bottom:16px;">
+            <label class="form-label">Assigned Cashier</label>
+            <select name="cashier" class="form-glass" style="margin-bottom:16px;">
+                <option value="">— Unassigned —</option>
+                {% for c in cashiers %}
+                <option value="{{ c.pk }}" {% if obj.cashier_id == c.pk %}selected{% endif %}>{{ c.username }} — {{ c.get_full_name|default:c.username }}</option>
+                {% endfor %}
+            </select>
+            {% if action == 'Edit' %}
+            <label style="display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;margin-bottom:18px;cursor:pointer;">
+                <input type="checkbox" name="is_active" {% if obj.is_active %}checked{% endif %} style="width:16px;height:16px;"> Active
+            </label>
+            {% endif %}
+            <div style="display:flex;gap:12px;">
+                <button type="submit" class="btn-primary-glass"><i class="bi bi-check-lg me-1"></i> {{ action }} Counter</button>
+                <a href="{% url 'accounts:counter_list' %}" class="btn-ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

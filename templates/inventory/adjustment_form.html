@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}New Adjustment — PharmaPOS{% endblock %}
+{% block nav_drugs %}active{% endblock %}
+{% block page_title %}Stock Adjustment{% endblock %}
+{% block page_sub %}Add or remove stock manually{% endblock %}
+
+{% block content %}
+<div style="max-width:520px;" class="anim-up">
+    <div class="glass-card">
+        <form method="post">
+            {% csrf_token %}
+            <label class="form-label">Drug *</label>
+            <select name="drug" required class="form-glass" style="margin-bottom:16px;">
+                <option value="">— Select Drug —</option>
+                {% for d in drugs %}
+                <option value="{{ d.pk }}">{{ d.brand_name }} (Stock: {{ d.quantity }})</option>
+                {% endfor %}
+            </select>
+            <label class="form-label">Quantity Change *</label>
+            <input name="quantity_change" type="number" required class="form-glass" placeholder="Use negative to reduce (e.g. -5)" style="margin-bottom:16px;">
+            <label class="form-label">Reason *</label>
+            <select name="reason" required class="form-glass" style="margin-bottom:16px;">
+                {% for val, label in reasons %}
+                <option value="{{ val }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+            <label class="form-label">Notes</label>
+            <textarea name="notes" class="form-glass" rows="3" placeholder="Optional…" style="margin-bottom:20px;"></textarea>
+            <div style="display:flex;gap:12px;">
+                <button type="submit" class="btn-primary-glass"><i class="bi bi-check-lg me-1"></i> Save Adjustment</button>
+                <a href="{% url 'inventory:adjustment_list' %}" class="btn-ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Purchase Detail — PharmaPOS{% endblock %}
+{% block nav_purchases %}active{% endblock %}
+{% block page_title %}PO-{{ purchase.id|stringformat:"04d" }}{% endblock %}
+{% block page_sub %}{{ purchase.supplier.name }} — {{ purchase.purchase_date|date:"d M Y" }}{% endblock %}
+
+{% block content %}
+<div style="max-width:860px;" class="anim-up">
+    <div class="glass-card" style="margin-bottom:16px;">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
+            <div><div class="card-sub">Supplier</div><div style="color:#fff;font-weight:600;margin-top:4px;">{{ purchase.supplier.name }}</div></div>
+            <div><div class="card-sub">Invoice No</div><div style="color:#fff;margin-top:4px;">{{ purchase.invoice_no|default:"—" }}</div></div>
+            <div><div class="card-sub">Date</div><div style="color:#fff;margin-top:4px;">{{ purchase.purchase_date|date:"d M Y" }}</div></div>
+            <div><div class="card-sub">Pharmacist</div><div style="color:#fff;margin-top:4px;">{{ purchase.pharmacist.get_full_name|default:purchase.pharmacist.username|default:"—" }}</div></div>
+            <div><div class="card-sub">Status</div><div style="margin-top:4px;"><span class="badge-paid">{{ purchase.get_status_display }}</span></div></div>
+            <div><div class="card-sub">Total</div><div style="color:var(--accent1);font-weight:700;font-size:18px;margin-top:4px;">Rs {{ purchase.total_amount }}</div></div>
+        </div>
+        {% if purchase.notes %}<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:13px;">{{ purchase.notes }}</div>{% endif %}
+    </div>
+
+    <div class="glass-card">
+        <div class="card-title" style="margin-bottom:16px;">Items Received</div>
+        <table class="custom-table">
+            <thead><tr><th>Drug</th><th>Qty</th><th>Cost Price</th><th>Expiry</th><th>Subtotal</th></tr></thead>
+            <tbody>
+            {% for item in purchase.items.all %}
+            <tr>
+                <td style="font-weight:600;color:#fff;">{{ item.drug.brand_name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>Rs {{ item.cost_price }}</td>
+                <td>{{ item.expiry_date|date:"d M Y"|default:"—" }}</td>
+                <td style="color:var(--accent1);">Rs {{ item.subtotal }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div style="text-align:right;margin-top:16px;font-size:16px;font-weight:700;color:#fff;">
+            Total: <span style="color:var(--accent1);">Rs {{ purchase.total_amount }}</span>
+        </div>
+    </div>
+
+    <div style="margin-top:16px;">
+        <a href="{% url 'inventory:purchase_list' %}" class="btn-ghost"><i class="bi bi-arrow-left me-1"></i> Back</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Process Return — PharmaPOS{% endblock %}
+{% block nav_returns %}active{% endblock %}
+{% block page_title %}Process Return{% endblock %}
+{% block page_sub %}{{ sale.invoice_no }} — {{ sale.sale_date|date:"d M Y" }}{% endblock %}
+
+{% block content %}
+<div style="max-width:800px;" class="anim-up">
+<form method="post">
+{% csrf_token %}
+
+<div class="glass-card" style="margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+            <label class="form-label">Return Type *</label>
+            <select name="return_type" required class="form-glass" id="returnType" onchange="toggleExchange()">
+                <option value="cash">Cash Refund</option>
+                <option value="exchange">Drug Exchange</option>
+            </select>
+        </div>
+        <div>
+            <label class="form-label">Reason</label>
+            <input name="reason" class="form-glass" placeholder="e.g. Wrong drug dispensed">
+        </div>
+    </div>
+</div>
+
+<div class="glass-card" style="margin-bottom:16px;">
+    <div class="card-title" style="margin-bottom:16px;">Select Items to Return</div>
+    <table class="custom-table">
+        <thead><tr>
+            <th>Drug</th><th>Sold Qty</th><th>Unit Price</th><th>Return Qty</th><th id="exchHdr" style="display:none;">Exchange With</th>
+        </tr></thead>
+        <tbody>
+        {% for item in sale.items.all %}
+        <tr>
+            <td style="font-weight:600;color:#fff;">{{ item.drug.brand_name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>Rs {{ item.unit_price }}</td>
+            <td>
+                <input type="hidden" name="item_id" value="{{ item.pk }}">
+                <input type="number" name="return_qty" min="0" max="{{ item.quantity }}" value="0"
+                    class="form-glass" style="width:80px;padding:7px 10px;">
+            </td>
+            <td class="exch-col" style="display:none;">
+                <select name="exchange_drug" class="form-glass" style="width:200px;">
+                    <option value="">— Same / None —</option>
+                    {% for d in drugs %}
+                    <option value="{{ d.pk }}">{{ d.brand_name }} ({{ d.quantity }})</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div style="display:flex;gap:12px;">
+    <button type="submit" class="btn-primary-glass"><i class="bi bi-check-lg me-1"></i> Process Return</button>
+    <a href="{% url 'sales:sale_detail' sale.pk %}" class="btn-ghost">Cancel</a>
+</div>
+</form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleExchange() {
+    const isExchange = document.getElementById('returnType').value === 'exchange';
+    document.getElementById('exchHdr').style.display = isExchange ? '' : 'none';
+    document.querySelectorAll('.exch-col').forEach(el => el.style.display = isExchange ? '' : 'none');
+}
+</script>
+{% endblock %}

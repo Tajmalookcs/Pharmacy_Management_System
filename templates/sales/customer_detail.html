@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}{{ customer.name }} — PharmaPOS{% endblock %}
+{% block nav_customers %}active{% endblock %}
+{% block page_title %}{{ customer.name }}{% endblock %}
+{% block page_sub %}Customer profile & history{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start;">
+
+    <!-- Edit form -->
+    <div class="glass-card anim-up">
+        <div class="card-title" style="margin-bottom:18px;">Edit Details</div>
+        <form method="post">
+            {% csrf_token %}
+            <label class="form-label">Name</label><input name="name" value="{{ customer.name }}" required class="form-glass" style="margin-bottom:12px;">
+            <label class="form-label">Phone</label><input name="phone" value="{{ customer.phone }}" class="form-glass" style="margin-bottom:12px;">
+            <label class="form-label">Email</label><input name="email" value="{{ customer.email }}" class="form-glass" style="margin-bottom:12px;">
+            <label class="form-label">Address</label><textarea name="address" class="form-glass" rows="2" style="margin-bottom:12px;">{{ customer.address }}</textarea>
+            <label class="form-label">Notes</label><textarea name="notes" class="form-glass" rows="2" style="margin-bottom:18px;">{{ customer.notes }}</textarea>
+            <button type="submit" class="btn-primary-glass" style="width:100%;">Save Changes</button>
+        </form>
+    </div>
+
+    <!-- Purchase history -->
+    <div class="glass-card anim-up" style="animation-delay:.1s;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div class="card-title">Purchase History</div>
+            <span style="color:var(--accent1);font-weight:700;font-size:16px;">Rs {{ customer.total_purchases }}</span>
+        </div>
+        <table class="custom-table">
+            <thead><tr><th>Invoice</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            {% for sale in sales %}
+            <tr>
+                <td style="color:var(--accent1);">{{ sale.invoice_no }}</td>
+                <td style="color:var(--muted);">{{ sale.sale_date|date:"d M Y" }}</td>
+                <td>Rs {{ sale.total_amount }}</td>
+                <td><span class="badge-{% if sale.status == 'completed' %}paid{% else %}pending{% endif %}">{{ sale.get_status_display }}</span></td>
+                <td><a href="{% url 'sales:sale_detail' sale.pk %}" class="btn-ghost" style="padding:4px 10px;font-size:11px;"><i class="bi bi-eye"></i></a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);">No purchases yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

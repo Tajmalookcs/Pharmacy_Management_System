@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}{{ sale.invoice_no }} — PharmaPOS{% endblock %}
+{% block nav_sales %}active{% endblock %}
+{% block page_title %}{{ sale.invoice_no }}{% endblock %}
+{% block page_sub %}{{ sale.sale_date|date:"d M Y H:i" }}{% endblock %}
+
+{% block content %}
+<div style="max-width:860px;" class="anim-up">
+
+    <!-- Header info -->
+    <div class="glass-card" style="margin-bottom:16px;">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
+            <div><div class="card-sub">Customer</div><div style="color:#fff;font-weight:600;margin-top:4px;">{{ sale.customer.name|default:"Walk-in" }}</div></div>
+            <div><div class="card-sub">Counter</div><div style="color:#fff;margin-top:4px;">{{ sale.counter.name|default:"—" }}</div></div>
+            <div><div class="card-sub">Cashier</div><div style="color:#fff;margin-top:4px;">{{ sale.cashier.username|default:"—" }}</div></div>
+            <div><div class="card-sub">Payment</div><div style="margin-top:4px;"><span class="badge-info">{{ sale.get_payment_method_display }}</span></div></div>
+            <div><div class="card-sub">Status</div><div style="margin-top:4px;"><span class="badge-{% if sale.status == 'completed' %}paid{% elif sale.status == 'pending' %}pending{% else %}return{% endif %}">{{ sale.get_status_display }}</span></div></div>
+            <div><div class="card-sub">Total</div><div style="color:var(--accent1);font-weight:700;font-size:20px;margin-top:4px;">Rs {{ sale.total_amount }}</div></div>
+        </div>
+    </div>
+
+    <!-- Items -->
+    <div class="glass-card" style="margin-bottom:16px;">
+        <div class="card-title" style="margin-bottom:14px;">Items</div>
+        <table class="custom-table">
+            <thead><tr><th>Drug</th><th>Unit Price</th><th>Qty</th><th>Discount</th><th>Subtotal</th></tr></thead>
+            <tbody>
+            {% for item in sale.items.all %}
+            <tr>
+                <td style="font-weight:600;color:#fff;">{{ item.drug.brand_name }}</td>
+                <td>Rs {{ item.unit_price }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{% if item.discount %}Rs {{ item.discount }}{% else %}—{% endif %}</td>
+                <td style="color:var(--accent1);">Rs {{ item.subtotal }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div style="text-align:right;margin-top:16px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+            <div style="color:var(--muted);font-size:13px;">Subtotal: Rs {{ sale.subtotal }}</div>
+            {% if sale.discount_amount %}<div style="color:var(--yellow);font-size:13px;">Discount: − Rs {{ sale.discount_amount }}</div>{% endif %}
+            {% if sale.tax_amount %}<div style="color:var(--muted);font-size:13px;">Tax: Rs {{ sale.tax_amount }}</div>{% endif %}
+            <div style="font-size:18px;font-weight:700;color:#fff;">Total: <span style="color:var(--accent1);">Rs {{ sale.total_amount }}</span></div>
+            <div style="color:var(--green);font-size:13px;">Paid: Rs {{ sale.amount_paid }} &nbsp;|&nbsp; Change: Rs {{ sale.change_amount }}</div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:10px;">
+        <a href="{% url 'sales:sale_receipt' sale.pk %}" class="btn-primary-glass" style="text-decoration:none;" target="_blank"><i class="bi bi-printer me-1"></i> Print Receipt</a>
+        {% if sale.can_return %}
+        <a href="{% url 'sales:return_new' sale.pk %}" class="btn-danger-glass" style="text-decoration:none;"><i class="bi bi-arrow-return-left me-1"></i> Process Return</a>
+        {% endif %}
+        <a href="{% url 'sales:sale_list' %}" class="btn-ghost"><i class="bi bi-arrow-left me-1"></i> Back</a>
+    </div>
+</div>
+{% endblock %}
