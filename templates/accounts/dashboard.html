@@ -20,20 +20,66 @@
 {% endif %}
 
 <!-- Counter chips -->
-<div style="display:flex;gap:10px;margin-bottom:22px;" class="anim-down">
+<div style="display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap;align-items:center;" class="anim-down">
+    <span style="font-size:12px;color:var(--muted);font-weight:600;">{{ counters|length }} Counter{{ counters|length|pluralize }} Active</span>
+    <span style="width:1px;height:20px;background:var(--border);"></span>
     {% for counter in counters %}
-    <a href="#" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;text-decoration:none;transition:all 0.2s;">
-        <span style="width:8px;height:8px;border-radius:50%;background:var(--green);animation:blink 2s ease-in-out infinite;"></span>
-        {{ counter.name }} &nbsp;<strong style="color:#fff;">Active</strong>
-    </a>
+        {% if counter.is_main and request.user.is_superuser or counter.is_main and request.user.role == 'superuser' %}
+        <a href="{% url 'sales:pos' counter.pk %}" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--yellow)';this.style.color='var(--yellow)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--green);animation:blink 2s ease-in-out infinite;"></span>
+            {{ counter.name }}
+            <span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">MAIN</span>
+            <i class="bi bi-box-arrow-up-right" style="font-size:11px;"></i>
+        </a>
+        {% else %}
+        <span style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--green);animation:blink 2s ease-in-out infinite;"></span>
+            {{ counter.name }}
+            {% if counter.cashier %}<span style="font-size:11px;">· {{ counter.cashier.get_full_name|default:counter.cashier.username }}</span>{% endif %}
+            {% if counter.is_main %}<span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">MAIN</span>{% endif %}
+        </span>
+        {% endif %}
+    {% empty %}
+    <span style="font-size:12px;color:var(--muted);">No active counters</span>
     {% endfor %}
-    <a href="#" style="margin-left:auto;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:12px;color:var(--accent1);display:flex;align-items:center;gap:8px;text-decoration:none;">
-        <i class="bi bi-display"></i> Open POS
-    </a>
 </div>
 <style>
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
 </style>
+
+<!-- Recent Sales (top) -->
+<div class="glass-card anim-up" style="margin-bottom:22px;animation-delay:.08s;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div class="card-title">Recent Sales</div>
+        <a href="{% url 'sales:sale_list' %}" style="font-size:12px;color:var(--accent1);text-decoration:none;">View all</a>
+    </div>
+    <table class="custom-table">
+        <thead><tr>
+            <th>Invoice</th><th>Customer</th><th>Counter</th><th>Amount</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody>
+        {% for sale in recent_sales %}
+        <tr id="sale-row-{{ sale.pk }}">
+            <td><a href="{% url 'sales:sale_detail' sale.pk %}" style="color:var(--accent1);text-decoration:none;">{{ sale.invoice_no }}</a></td>
+            <td>{{ sale.customer.name|default:"Walk-in" }}</td>
+            <td>{{ sale.counter.name|default:"—" }}</td>
+            <td>Rs {{ sale.total_amount }}</td>
+            <td><span class="badge-{{ sale.status }}" id="badge-{{ sale.pk }}">{{ sale.get_status_display }}</span></td>
+            <td>
+                {% if sale.status == 'pending' %}
+                <button onclick="openCompleteModal({{ sale.pk }}, 'Rs {{ sale.total_amount }}')"
+                    style="background:rgba(16,185,129,0.15);border:1px solid var(--green);color:var(--green);border-radius:8px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                    <i class="bi bi-check-lg"></i> Complete
+                </button>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">No sales yet today</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
 
 <!-- Stat cards -->
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px;">
@@ -113,33 +159,7 @@
 </div>
 
 <!-- Bottom row -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-
-    <!-- Recent sales -->
-    <div class="glass-card anim-up" style="animation-delay:.3s;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-            <div class="card-title">Recent Sales</div>
-            <a href="{% url 'sales:sale_list' %}" style="font-size:12px;color:var(--accent1);text-decoration:none;">View all</a>
-        </div>
-        <table class="custom-table">
-            <thead><tr>
-                <th>Invoice</th><th>Customer</th><th>Counter</th><th>Amount</th><th>Status</th>
-            </tr></thead>
-            <tbody>
-            {% for sale in recent_sales %}
-            <tr>
-                <td style="color:var(--accent1);">{{ sale.invoice_no }}</td>
-                <td>{{ sale.customer.name|default:"Walk-in" }}</td>
-                <td>{{ sale.counter.name|default:"—" }}</td>
-                <td>Rs {{ sale.total_amount }}</td>
-                <td><span class="badge-{{ sale.status }}">{{ sale.get_status_display }}</span></td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">No sales yet today</td></tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<div style="display:grid;grid-template-columns:1fr;gap:16px;">
 
     <!-- Alerts -->
     <div class="glass-card anim-up" style="animation-delay:.35s;">
@@ -178,10 +198,92 @@
     </div>
 
 </div>
+<!-- Complete Sale Modal -->
+<div id="completeModal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;">
+  <div style="background:#1e293b;border:1px solid var(--border);border-radius:16px;padding:28px;width:340px;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+    <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;">Complete Sale</div>
+    <div id="modalInvoice" style="font-size:13px;color:var(--muted);margin-bottom:18px;"></div>
+
+    <label style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:5px;">Payment Method</label>
+    <select id="modalPayMethod" style="width:100%;padding:9px 12px;font-size:13px;font-weight:600;border-radius:8px;border:1px solid var(--border);background:#0f172a;color:#fff;margin-bottom:14px;">
+      <option value="cash">Cash</option>
+      <option value="card">Card</option>
+      <option value="partial">Partial (Cash + Card)</option>
+    </select>
+
+    <label style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:5px;">Amount Paid</label>
+    <input id="modalAmountPaid" type="number" min="0" oninput="updateModalChange()"
+      style="width:100%;padding:9px 12px;font-size:15px;font-weight:700;border-radius:8px;border:1px solid var(--border);background:#0f172a;color:#fff;margin-bottom:10px;">
+
+    <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:9px 14px;display:flex;justify-content:space-between;margin-bottom:18px;">
+      <span style="color:var(--green);font-weight:600;font-size:13px;">Change</span>
+      <span id="modalChange" style="color:var(--green);font-weight:700;">Rs 0</span>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button onclick="confirmComplete()" style="flex:1;padding:11px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">
+        <i class="bi bi-check-circle me-1"></i> Confirm
+      </button>
+      <button onclick="closeCompleteModal()" style="padding:11px 18px;background:#334155;color:#94a3b8;border:none;border-radius:10px;font-size:14px;cursor:pointer;">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+let activeSaleId = null;
+let activeSaleTotal = 0;
+
+function openCompleteModal(saleId, totalStr) {
+    activeSaleId = saleId;
+    activeSaleTotal = parseFloat(totalStr.replace(/[^0-9.]/g, '')) || 0;
+    document.getElementById('modalInvoice').textContent = 'Total: ' + totalStr;
+    document.getElementById('modalAmountPaid').value = activeSaleTotal;
+    updateModalChange();
+    document.getElementById('completeModal').style.display = 'flex';
+    document.getElementById('modalAmountPaid').focus();
+}
+
+function updateModalChange() {
+    const paid = parseFloat(document.getElementById('modalAmountPaid').value) || 0;
+    const change = Math.max(paid - activeSaleTotal, 0);
+    document.getElementById('modalChange').textContent = 'Rs ' + change.toLocaleString();
+}
+
+function closeCompleteModal() {
+    document.getElementById('completeModal').style.display = 'none';
+    activeSaleId = null;
+}
+
+function confirmComplete() {
+    if (!activeSaleId) return;
+    const payMethod = document.getElementById('modalPayMethod').value;
+    const amountPaid = parseFloat(document.getElementById('modalAmountPaid').value) || 0;
+    fetch(`/sales/${activeSaleId}/mark-received/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json'},
+        body: JSON.stringify({payment_method: payMethod, amount_paid: amountPaid}),
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const badge = document.getElementById('badge-' + activeSaleId);
+            badge.className = 'badge-completed';
+            badge.textContent = 'Completed';
+            const row = document.getElementById('sale-row-' + activeSaleId);
+            if (row) row.querySelector('td:last-child').innerHTML = '';
+            closeCompleteModal();
+        }
+    });
+}
+
+document.getElementById('completeModal').addEventListener('click', function(e) {
+    if (e.target === this) closeCompleteModal();
+});
+
 Chart.defaults.color = 'rgba(255,255,255,0.4)';
 Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
 Chart.defaults.font.family = "'Segoe UI', sans-serif";

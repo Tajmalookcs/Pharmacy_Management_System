@@ -29,8 +29,8 @@ One Pharmacy Shop
 ## User Roles & Access
 | Feature        | Superuser | Partner | Pharmacist | Cashier |
 |----------------|-----------|---------|------------|---------|
-| POS / Sales    | ✅        | ❌      | ❌         | ✅      |
-| Returns        | ✅        | ❌      | ❌         | ✅      |
+| POS / Sales    | ❌        | ❌      | ❌         | ✅      |
+| Returns        | ❌        | ❌      | ❌         | ✅      |
 | Inventory      | ✅        | ❌      | ✅         | ❌      |
 | Purchases      | ✅        | ❌      | ✅         | ❌      |
 | Day Closing    | ✅        | ❌      | ❌         | ✅      |
@@ -103,6 +103,12 @@ apps/
   reports/          ← all reports and analytics
   settings_app/     ← pharmacy settings
 ```
+
+## Counter & POS Rules
+- Each cashier is assigned to **one counter only** — they can only sell from their own counter
+- **Superuser cannot create sales** from any counter — POS is cashier-only
+- **Main Counter** cashier can view and receive pending orders from all other counters
+- Dashboard counter chips are **view-only** for non-cashiers (status display only)
 
 ## Key Business Rules
 - Return allowed only within **15 days** of original sale (system enforced)

@@ -46,13 +46,9 @@
 <div class="line"></div>
 
 {% for item in sale.items.all %}
-<div style="margin:5px 0;">
-    <div class="bold">{{ item.drug.brand_name }}{% if item.drug.strength %} {{ item.drug.strength }}{% endif %}</div>
-    {% if item.drug.generic_name %}<div style="font-size:11px;color:#555;">{{ item.drug.generic_name }}</div>{% endif %}
-    <div class="row">
-        <span></span>
-        <span>{{ item.quantity }} × Rs{{ item.unit_price }} = Rs{{ item.subtotal }}</span>
-    </div>
+<div class="row" style="margin:4px 0;gap:6px;">
+    <span class="bold" style="flex:1;min-width:0;">{{ item.drug.brand_name }}{% if item.drug.strength %} {{ item.drug.strength }}{% endif %}</span>
+    <span style="white-space:nowrap;">{{ item.quantity }}×Rs{{ item.unit_price }}=Rs{{ item.subtotal }}</span>
 </div>
 {% endfor %}
 
@@ -62,8 +58,6 @@
 {% if sale.tax_amount %}<div class="row"><span>Tax</span><span>Rs {{ sale.tax_amount }}</span></div>{% endif %}
 <div class="line"></div>
 <div class="total-row"><span>TOTAL</span><span>Rs {{ sale.total_amount }}</span></div>
-<div class="row"><span>Paid ({{ sale.get_payment_method_display }})</span><span>Rs {{ sale.amount_paid }}</span></div>
-{% if sale.change_amount %}<div class="row"><span>Change</span><span>Rs {{ sale.change_amount }}</span></div>{% endif %}
 <div class="line"></div>
 
 {% if settings.receipt_footer %}

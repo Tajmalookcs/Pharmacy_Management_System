@@ -9,6 +9,10 @@ from .models import User, Partner, Counter
 
 def login_view(request):
     if request.user.is_authenticated:
+        if request.user.role == 'cashier':
+            counter = Counter.objects.filter(cashier=request.user, is_active=True).first()
+            if counter:
+                return redirect('sales:pos', counter_id=counter.pk)
         return redirect('dashboard')
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -16,6 +20,10 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
+            if user.role == 'cashier':
+                counter = Counter.objects.filter(cashier=user, is_active=True).first()
+                if counter:
+                    return redirect('sales:pos', counter_id=counter.pk)
             return redirect('dashboard')
         messages.error(request, 'Invalid username or password.')
     return render(request, 'accounts/login.html')
@@ -29,6 +37,12 @@ def logout_view(request):
 
 @login_required
 def dashboard(request):
+    if request.user.role == 'cashier':
+        counter = Counter.objects.filter(cashier=request.user, is_active=True).first()
+        if counter:
+            return redirect('sales:pos', counter_id=counter.pk)
+        return redirect('sales:sale_list')
+
     from apps.inventory.models import Drug
     from apps.sales.models import Sale, Return
 
@@ -171,6 +185,7 @@ def counter_edit(request, pk):
         cashier_id        = request.POST.get('cashier')
         counter.cashier   = User.objects.filter(pk=cashier_id).first() if cashier_id else None
         counter.is_active = request.POST.get('is_active') == 'on'
+        counter.is_main   = request.POST.get('is_main') == 'on'
         counter.save()
         messages.success(request, 'Counter updated.')
         return redirect('accounts:counter_list')

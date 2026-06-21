@@ -11,11 +11,16 @@ def drug_list(request):
     q        = request.GET.get('q', '')
     category = request.GET.get('category', '')
     alert    = request.GET.get('alert', '')
-    drugs    = Drug.objects.select_related('category', 'supplier').filter(is_active=True)
+    status   = request.GET.get('status', '')
+    drugs    = Drug.objects.select_related('category', 'supplier').all()
     if q:
         drugs = drugs.filter(Q(brand_name__icontains=q) | Q(generic_name__icontains=q) | Q(barcode__icontains=q))
     if category:
         drugs = drugs.filter(category_id=category)
+    if status == 'active':
+        drugs = drugs.filter(is_active=True)
+    elif status == 'inactive':
+        drugs = drugs.filter(is_active=False)
     today = timezone.now().date()
     if alert == 'low':
         drugs = drugs.filter(quantity__lte=10)
@@ -26,8 +31,18 @@ def drug_list(request):
     categories = Category.objects.all()
     return render(request, 'inventory/drug_list.html', {
         'drugs': drugs, 'categories': categories, 'q': q,
-        'selected_cat': category, 'selected_alert': alert,
+        'selected_cat': category, 'selected_alert': alert, 'selected_status': status,
     })
+
+
+@login_required
+def drug_toggle_active(request, pk):
+    drug = get_object_or_404(Drug, pk=pk)
+    drug.is_active = not drug.is_active
+    Drug.objects.filter(pk=pk).update(is_active=drug.is_active)
+    status = 'activated' if drug.is_active else 'deactivated'
+    messages.success(request, f'"{drug.brand_name}" {status}.')
+    return redirect('inventory:drug_list')
 
 
 @login_required
@@ -87,6 +102,9 @@ def drug_edit(request, pk):
         drug.category = Category.objects.filter(pk=cat_id).first() if cat_id else None
         drug.supplier = Supplier.objects.filter(pk=sup_id).first() if sup_id else None
         if request.FILES.get('image'): drug.image = request.FILES['image']
+        drug.is_active = request.POST.get('is_active') == 'on'
+        if int(drug.quantity or 0) > 0:
+            drug.is_active = True
         drug.save()
         messages.success(request, 'Drug updated.')
         return redirect('inventory:drug_list')
@@ -194,6 +212,8 @@ def purchase_add(request):
             drug.quantity   += qty
             drug.cost_price  = cost
             if exp: drug.expiry_date = exp
+            if drug.quantity > 0:
+                drug.is_active = True
             drug.save()
             total += qty * cost
         purchase.total_amount = total

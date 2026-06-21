@@ -16,6 +16,10 @@
             <div><div class="card-sub">Payment</div><div style="margin-top:4px;"><span class="badge-info">{{ sale.get_payment_method_display }}</span></div></div>
             <div><div class="card-sub">Status</div><div style="margin-top:4px;"><span class="badge-{% if sale.status == 'completed' %}paid{% elif sale.status == 'pending' %}pending{% else %}return{% endif %}">{{ sale.get_status_display }}</span></div></div>
             <div><div class="card-sub">Total</div><div style="color:var(--accent1);font-weight:700;font-size:20px;margin-top:4px;">Rs {{ sale.total_amount }}</div></div>
+            {% if sale.received_by %}
+            <div><div class="card-sub">Cash Received By</div><div style="color:#fff;font-weight:600;margin-top:4px;">{{ sale.received_by.get_full_name|default:sale.received_by.username }}</div></div>
+            <div><div class="card-sub">Received At</div><div style="color:#fff;margin-top:4px;">{{ sale.received_at|date:"d M Y H:i" }}</div></div>
+            {% endif %}
         </div>
     </div>
 

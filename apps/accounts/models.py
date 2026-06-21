@@ -45,8 +45,9 @@ class Counter(models.Model):
         related_name='assigned_counter',
         limit_choices_to={'role': 'cashier'}
     )
+    is_main = models.BooleanField(default=False, help_text='Main counter can receive cash for all pending orders')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} {'(Main)' if self.is_main else ''}"

@@ -8,12 +8,12 @@
 <style>
 .pos-wrap {
     display: grid;
-    grid-template-columns: 1fr 370px;
+    grid-template-columns: 1fr 390px;
     gap: 16px;
-    height: calc(100vh - 155px);
+    align-items: start;
 }
-.pos-left  { display:flex; flex-direction:column; gap:10px; min-height:0; }
-.pos-right { display:flex; flex-direction:column; gap:10px; min-height:0; }
+.pos-left  { display:flex; flex-direction:column; gap:10px; }
+.pos-right { display:flex; flex-direction:column; gap:10px; }
 
 /* Search */
 .search-wrap { position:relative; }
@@ -21,8 +21,8 @@
 .search-wrap input { padding-left:42px; }
 
 /* Drug list */
-.drug-list-card { flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; }
-.drug-list-scroll { flex:1; overflow-y:auto; }
+.drug-list-card { overflow:hidden; display:flex; flex-direction:column; }
+.drug-list-scroll { max-height:calc(100vh - 230px); overflow-y:auto; }
 
 .drug-table { width:100%; border-collapse:collapse; font-size:13px; }
 .drug-table thead th {
@@ -54,9 +54,9 @@
 }
 .add-btn:hover { background:var(--accent2); color:#fff; }
 
-/* Cart — expands to fill available space */
-.cart-card { flex:1; min-height:0; display:flex; flex-direction:column; }
-.cart-scroll { flex:1; overflow-y:auto; }
+/* Cart */
+.cart-card { display:flex; flex-direction:column; }
+.cart-scroll { max-height:280px; overflow-y:auto; }
 .cart-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; min-height:80px; color:var(--muted); gap:8px; }
 
 .cart-table { width:100%; border-collapse:collapse; font-size:13px; }
@@ -244,7 +244,7 @@
       </div>
     </div>
 
-    <!-- Summary + Payment (no numpad) -->
+    <!-- Summary -->
     <div class="glass-card" style="padding:14px;">
       <div class="summary-row">
         <span style="color:var(--muted);">Subtotal</span>
@@ -262,29 +262,12 @@
         <span>Total</span>
         <span id="sumTotal" style="color:var(--accent2);">Rs 0</span>
       </div>
-
-      <div style="display:flex;gap:6px;margin:10px 0 8px;">
-        {% for val, label in payment_methods %}
-        <button type="button" class="pay-btn {% if forloop.first %}active{% endif %}" data-val="{{ val }}">{{ label }}</button>
-        {% endfor %}
-      </div>
-
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <label style="font-size:12px;color:var(--muted);white-space:nowrap;">Amount Paid</label>
-        <input id="amountPaid" type="number" min="0" value="0"
-          class="form-glass" style="font-size:15px;font-weight:600;" oninput="updateChange()">
-      </div>
-
-      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:9px;padding:9px 14px;display:flex;justify-content:space-between;align-items:center;">
-        <span style="color:var(--green);font-weight:600;">Change</span>
-        <span id="changeAmt" style="color:var(--green);font-weight:700;font-size:16px;">Rs 0</span>
-      </div>
     </div>
 
     <!-- Charge button -->
     <button onclick="submitSale()" class="btn-primary-glass"
         style="width:100%;padding:14px;font-size:15px;font-weight:700;justify-content:center;">
-      <i class="bi bi-check-circle me-2"></i>Charge — <span id="btnTotal">Rs 0</span>
+      <i class="bi bi-receipt me-2"></i>Print Receipt — <span id="btnTotal">Rs 0</span>
     </button>
 
   </div>

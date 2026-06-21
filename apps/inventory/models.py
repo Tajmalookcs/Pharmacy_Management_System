@@ -78,6 +78,11 @@ class Drug(models.Model):
             return 0 <= delta.days <= days
         return False
 
+    def save(self, *args, **kwargs):
+        if self.quantity > 0 and not self.is_active:
+            self.is_active = True
+        super().save(*args, **kwargs)
+
     def profit_margin(self):
         if self.sale_price and self.cost_price:
             return self.sale_price - self.cost_price

@@ -5,6 +5,8 @@ app_name = 'sales'
 
 urlpatterns = [
     path('', views.sale_list, name='sale_list'),
+    path('pending/', views.pending_orders, name='pending_orders'),
+    path('<int:pk>/mark-received/', views.mark_received, name='mark_received'),
     path('pos/<int:counter_id>/', views.pos, name='pos'),
     path('pos/drug-search/', views.drug_search_api, name='drug_search'),
     path('pos/submit/', views.sale_submit, name='sale_submit'),

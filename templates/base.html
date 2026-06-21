@@ -177,25 +177,52 @@
     </div>
 
     <nav class="sidebar-nav">
+        {% if request.user.role != 'cashier' %}
         <div class="nav-section">Main</div>
         <a href="{% url 'dashboard' %}" class="nav-item {% block nav_dashboard %}{% endblock %}">
             <i class="bi bi-grid-1x2-fill"></i> Dashboard
         </a>
+        {% endif %}
 
         <div class="nav-section">Sales</div>
-        <a href="{% url 'accounts:counter_list' %}" class="nav-item {% block nav_pos %}{% endblock %}">
-            <i class="bi bi-display"></i> POS Counter
-        </a>
+        {% if request.user.is_superuser or request.user.role == 'superuser' %}
+            {% if main_counter %}
+            <a href="{% url 'sales:pos' main_counter.pk %}" class="nav-item {% block nav_pos %}{% endblock %}">
+                <i class="bi bi-display"></i> Main Counter POS
+            </a>
+            {% else %}
+            <a href="{% url 'accounts:counter_list' %}" class="nav-item">
+                <i class="bi bi-display"></i> Setup Counter
+            </a>
+            {% endif %}
+        {% elif request.user.role == 'cashier' %}
+            {% with counter=request.user.assigned_counter %}
+            {% if counter %}
+            <a href="{% url 'sales:pos' counter.pk %}" class="nav-item {% block nav_pos_cashier %}{% endblock %}">
+                <i class="bi bi-display"></i> My POS
+            </a>
+            {% endif %}
+            {% endwith %}
+        {% endif %}
         <a href="{% url 'sales:sale_list' %}" class="nav-item {% block nav_sales %}{% endblock %}">
             <i class="bi bi-receipt"></i> Sales
         </a>
+        {% if request.user.is_superuser or request.user.role == 'superuser' or request.user.assigned_counter.is_main %}
+        <a href="{% url 'sales:pending_orders' %}" class="nav-item {% block nav_pending %}{% endblock %}">
+            <i class="bi bi-hourglass-split"></i> Pending Orders
+        </a>
+        {% endif %}
         <a href="{% url 'sales:return_list' %}" class="nav-item {% block nav_returns %}{% endblock %}">
             <i class="bi bi-arrow-return-left"></i> Returns
         </a>
         <a href="{% url 'sales:day_closing_list' %}" class="nav-item {% block nav_closing %}{% endblock %}">
             <i class="bi bi-moon-stars"></i> Day Closing
         </a>
+        <a href="{% url 'sales:customer_list' %}" class="nav-item {% block nav_customers %}{% endblock %}">
+            <i class="bi bi-people"></i> Customers
+        </a>
 
+        {% if request.user.role != 'cashier' %}
         <div class="nav-section">Inventory</div>
         <a href="{% url 'inventory:drug_list' %}" class="nav-item {% block nav_drugs %}{% endblock %}">
             <i class="bi bi-box-seam"></i> Drugs / Stock
@@ -211,9 +238,6 @@
         </a>
 
         <div class="nav-section">People</div>
-        <a href="{% url 'sales:customer_list' %}" class="nav-item {% block nav_customers %}{% endblock %}">
-            <i class="bi bi-people"></i> Customers
-        </a>
         <a href="{% url 'accounts:partner_list' %}" class="nav-item {% block nav_partners %}{% endblock %}">
             <i class="bi bi-person-badge"></i> Partners
         </a>
@@ -225,6 +249,7 @@
         <a href="{% url 'reports:dashboard' %}" class="nav-item {% block nav_reports %}{% endblock %}">
             <i class="bi bi-bar-chart-line"></i> Reports
         </a>
+        {% endif %}
 
         <div class="nav-section">System</div>
         {% if request.user.is_superuser %}

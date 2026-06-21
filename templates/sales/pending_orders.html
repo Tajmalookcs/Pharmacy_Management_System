@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block title %}Pending Orders{% endblock %}
+{% block nav_pending %}active{% endblock %}
+{% block page_title %}Pending Orders{% endblock %}
+{% block page_sub %}Orders waiting for cash collection{% endblock %}
+
+{% block extra_css %}
+<style>
+.pending-card {
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:18px 20px; display:flex; align-items:center; gap:16px;
+    transition:box-shadow 0.2s, transform 0.2s;
+}
+.pending-card:hover { box-shadow:0 6px 20px rgba(0,0,0,0.10); transform:translateY(-1px); }
+.pending-dot { width:10px; height:10px; border-radius:50%; background:var(--yellow); animation:blink 1.5s ease-in-out infinite; flex-shrink:0; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.receive-btn {
+    margin-left:auto; flex-shrink:0;
+    background:linear-gradient(135deg,var(--green),#047857);
+    border:none; border-radius:9px; padding:9px 20px;
+    color:#fff; font-size:13px; font-weight:600; cursor:pointer;
+    transition:transform 0.15s, box-shadow 0.15s;
+    box-shadow:0 3px 10px rgba(5,150,105,0.3);
+    display:flex; align-items:center; gap:7px;
+}
+.receive-btn:hover { transform:translateY(-1px); box-shadow:0 5px 16px rgba(5,150,105,0.4); }
+.receive-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+.empty-state { text-align:center; padding:60px 20px; color:var(--muted); }
+.empty-state i { font-size:48px; margin-bottom:12px; display:block; color:#cbd5e1; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+        <span style="background:#fef3c7;color:#92400e;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;">
+            {{ sales|length }} Pending
+        </span>
+    </div>
+    <button onclick="location.reload()" class="btn-ghost" style="font-size:12px;">
+        <i class="bi bi-arrow-clockwise"></i> Refresh
+    </button>
+</div>
+
+{% if sales %}
+<div style="display:flex;flex-direction:column;gap:10px;" id="pending-list">
+    {% for sale in sales %}
+    <div class="pending-card anim-up" id="card-{{ sale.pk }}" style="animation-delay:{{ forloop.counter0 }}0ms;">
+        <span class="pending-dot"></span>
+
+        <div style="min-width:110px;">
+            <div style="font-size:14px;font-weight:700;color:var(--accent1);">{{ sale.invoice_no }}</div>
+            <div style="font-size:11px;color:var(--muted);">{{ sale.sale_date|date:"h:i A" }}</div>
+        </div>
+
+        <div style="min-width:130px;">
+            <div style="font-size:12px;font-weight:600;color:var(--text);">{{ sale.counter.name }}</div>
+            <div style="font-size:11px;color:var(--muted);">{{ sale.cashier.get_full_name|default:sale.cashier.username }}</div>
+        </div>
+
+        <div style="min-width:120px;">
+            <div style="font-size:12px;color:var(--muted);">Customer</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);">{{ sale.customer.name|default:"Walk-in" }}</div>
+        </div>
+
+        <div style="min-width:100px;">
+            <div style="font-size:12px;color:var(--muted);">Items</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);">{{ sale.items.count }} item{{ sale.items.count|pluralize }}</div>
+        </div>
+
+        <div style="min-width:110px;">
+            <div style="font-size:12px;color:var(--muted);">Amount</div>
+            <div style="font-size:16px;font-weight:700;color:var(--text);">Rs {{ sale.total_amount }}</div>
+        </div>
+
+        <div style="min-width:110px;">
+            <div style="font-size:12px;color:var(--muted);">Payment</div>
+            <div style="font-size:12px;font-weight:600;color:var(--accent2);">{{ sale.get_payment_method_display }}</div>
+        </div>
+
+        <a href="{% url 'sales:sale_detail' sale.pk %}" class="btn-ghost" style="font-size:12px;padding:8px 14px;">
+            <i class="bi bi-eye"></i> View
+        </a>
+
+        <button class="receive-btn" onclick="markReceived({{ sale.pk }}, this)" data-id="{{ sale.pk }}">
+            <i class="bi bi-check-circle-fill"></i> Mark Received
+        </button>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="glass-card empty-state anim-up">
+    <i class="bi bi-check2-all"></i>
+    <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px;">All orders collected!</div>
+    <div style="font-size:13px;">No pending orders at the moment.</div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function markReceived(saleId, btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Processing...';
+
+    fetch(`/sales/${saleId}/mark-received/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const card = document.getElementById(`card-${saleId}`);
+            card.style.transition = 'opacity 0.4s, transform 0.4s';
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(30px)';
+            setTimeout(() => {
+                card.remove();
+                updateCount();
+            }, 400);
+        }
+    })
+    .catch(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Mark Received';
+    });
+}
+
+function updateCount() {
+    const remaining = document.querySelectorAll('.pending-card').length;
+    const badge = document.querySelector('[style*="fef3c7"]');
+    if (badge) badge.textContent = remaining + ' Pending';
+    if (remaining === 0) {
+        document.getElementById('pending-list').innerHTML = `
+            <div class="glass-card empty-state anim-up">
+                <i class="bi bi-check2-all" style="font-size:48px;margin-bottom:12px;display:block;color:#cbd5e1;"></i>
+                <div style="font-size:16px;font-weight:600;margin-bottom:6px;">All orders collected!</div>
+                <div style="font-size:13px;color:var(--muted);">No pending orders at the moment.</div>
+            </div>`;
+    }
+}
+
+// Auto-refresh every 30 seconds
+setInterval(() => location.reload(), 30000);
+</script>
+{% endblock %}

@@ -14,7 +14,17 @@ import json
 # ─── POS ────────────────────────────────────────────────
 @login_required
 def pos(request, counter_id):
-    counter   = get_object_or_404(Counter, pk=counter_id)
+    counter = get_object_or_404(Counter, pk=counter_id)
+
+    # Superuser can only access the Main Counter POS
+    if request.user.is_superuser or request.user.role == 'superuser':
+        if not counter.is_main:
+            return redirect('dashboard')
+    # Cashiers can only access their assigned counter
+    elif not (hasattr(request.user, 'assigned_counter') and request.user.assigned_counter == counter):
+        messages.error(request, 'You are not assigned to this counter.')
+        return redirect('dashboard')
+
     customers = Customer.objects.all().order_by('name')
     drugs     = Drug.objects.filter(is_active=True, quantity__gt=0).select_related('category').order_by('brand_name')
     return render(request, 'sales/pos.html', {
@@ -58,6 +68,13 @@ def sale_submit(request):
             return JsonResponse({'error': 'No items in sale'}, status=400)
 
         counter  = Counter.objects.get(pk=counter_id)
+
+        is_superuser = request.user.is_superuser or request.user.role == 'superuser'
+        if is_superuser and not counter.is_main:
+            return JsonResponse({'error': 'Superuser can only sell from the Main Counter.'}, status=403)
+        elif not is_superuser and not (hasattr(request.user, 'assigned_counter') and request.user.assigned_counter == counter):
+            return JsonResponse({'error': 'You are not assigned to this counter.'}, status=403)
+
         customer = Customer.objects.filter(pk=customer_id).first() if customer_id else None
 
         subtotal = sum(float(i['price']) * int(i['qty']) for i in items)
@@ -69,7 +86,7 @@ def sale_submit(request):
             payment_method=payment_method,
             subtotal=subtotal, discount_amount=discount,
             total_amount=total, amount_paid=amount_paid, change_amount=change,
-            status='completed',
+            status='pending',
         )
         for item in items:
             drug = Drug.objects.get(pk=item['id'])
@@ -81,6 +98,33 @@ def sale_submit(request):
         return JsonResponse({'success': True, 'invoice_no': sale.invoice_no, 'sale_id': sale.pk, 'change': change})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
+
+# ─── Pending Orders (Main Counter) ──────────────────────
+@login_required
+def pending_orders(request):
+    sales = Sale.objects.filter(status='pending').select_related('counter', 'cashier', 'customer').order_by('sale_date')
+    return render(request, 'sales/pending_orders.html', {'sales': sales})
+
+
+@login_required
+@require_POST
+def mark_received(request, pk):
+    sale = get_object_or_404(Sale, pk=pk, status='pending')
+    try:
+        data = json.loads(request.body)
+        if data.get('payment_method'):
+            sale.payment_method = data['payment_method']
+        if data.get('amount_paid'):
+            sale.amount_paid = float(data['amount_paid'])
+            sale.change_amount = max(float(data['amount_paid']) - float(sale.total_amount), 0)
+    except Exception:
+        pass
+    sale.status = 'completed'
+    sale.received_by = request.user
+    sale.received_at = timezone.now()
+    sale.save()
+    return JsonResponse({'success': True, 'invoice_no': sale.invoice_no})
 
 
 # ─── Sales List ──────────────────────────────────────────
@@ -231,7 +275,15 @@ def day_closing_new(request):
             messages.error(request, f'{counter.name} is already closed for today.')
             return redirect('sales:day_closing_list')
 
-        today_sales   = Sale.objects.filter(counter=counter, sale_date__date=today, status='completed')
+        if counter.is_main:
+            # Main counter: own completed sales + sales received from other counters
+            today_sales = Sale.objects.filter(
+                status='completed', sale_date__date=today
+            ).filter(
+                Q(counter=counter) | Q(received_by__assigned_counter=counter)
+            ).distinct()
+        else:
+            today_sales = Sale.objects.filter(counter=counter, sale_date__date=today, status='completed')
         total_sales   = today_sales.aggregate(t=Sum('total_amount'))['t'] or 0
         total_returns = Return.objects.filter(sale__counter=counter, return_date__date=today).aggregate(t=Sum('refund_amount'))['t'] or 0
         expected_cash = float(total_sales) - float(total_returns)
@@ -251,8 +303,14 @@ def day_closing_new(request):
     counter_data = []
     for counter in counters:
         already_closed = DayClosing.objects.filter(counter=counter, closing_date=today, status='closed').exists()
-        sales_total = Sale.objects.filter(counter=counter, sale_date__date=today, status='completed').aggregate(t=Sum('total_amount'))['t'] or 0
-        sales_count = Sale.objects.filter(counter=counter, sale_date__date=today, status='completed').count()
+        if counter.is_main:
+            qs = Sale.objects.filter(status='completed', sale_date__date=today).filter(
+                Q(counter=counter) | Q(received_by__assigned_counter=counter)
+            ).distinct()
+        else:
+            qs = Sale.objects.filter(counter=counter, sale_date__date=today, status='completed')
+        sales_total = qs.aggregate(t=Sum('total_amount'))['t'] or 0
+        sales_count = qs.count()
         counter_data.append({'counter': counter, 'sales_total': sales_total, 'sales_count': sales_count, 'already_closed': already_closed})
 
     return render(request, 'sales/day_closing_form.html', {'counter_data': counter_data, 'today': today})
